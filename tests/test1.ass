@@ -1,0 +1,30 @@
+﻿[Script Info]
+ScriptType: v4.00+
+PlayResX: 500
+PlayResY: 600
+
+[Aegisub Project Garbage]
+Audio File: video.mkv
+Video File: video.mkv
+Keyframes File: keyframes.txt
+Video AR Mode: 4
+Video AR Value: 1.777778
+Video Zoom Percent: 1.000000
+Scroll Position: 30
+Active Line: 20
+Video Position: 12000
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,2,5,10,10,10,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\3c&H0000FF}this is a test\N{\3c&H00FF00}this is a test\N{\3c&HFF0000}this is a test
+Comment: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\an2}this is a line at \an2
+Dialogue: 1,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\an8}this \{Comment}is a line at \an8{}{}{
+Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\an4}this is a line at \an4
+Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\an6}this is a line at \an6
+
+[Aegisub Extradata]
+Data: 0,a-mo,e{"uuid"#3A"111209fa-a66b-41a1-9e1a-2a94dde74a78"#2C"originalText"#3A"{\\fnMailart Rubberstamp\\fax0.19\\fs50\\fscx105\\blur0.6\\c&H6C8389&\\frz348.2\\pos(746.2#2C173.2)}Student Co{\\c&H6C8389&}u{*\\c&H73898F&}n{*\\c&H7B8F95&}c{*\\c&H82969B&}i{*\\c&H8A9CA1&}l {*\\c&H99A8AE&}R{*\\c&HA0AFB4&}o{*\\c&HA8B5BA&}o{\\c&HAFBBC0&}m"}

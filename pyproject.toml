@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "light-ass"
+version = "0.1.0"
+description = "A lightweight library for handling ASS subtitles"
+readme = "README.md"
+requires-python = ">=3.12"
+keywords = ["subtitle", "ass"]
+license = {text = "MIT License"}
+authors = [
+    {name = "Oborozuki", email = "oborozuk1@qq.com"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Video",
+    "Development Status :: 3 - Alpha",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/oborozuk1/light-ass"
+Repository = "https://github.com/oborozuk1/light-ass.git"
+"Bug Tracker" = "https://github.com/oborozuk1/light-ass/issues"
+
+[tool.setuptools]
+packages = ["light_ass"]
