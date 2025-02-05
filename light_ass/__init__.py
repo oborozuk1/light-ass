@@ -1,4 +1,4 @@
-from . import tag_parser, subtitle, events, styles, script_info
+from . import subtitle, script_info, styles, events, ass_types, tag_parser
 from .subtitle import *
 
 __all__ = [

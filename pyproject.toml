@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "light-ass"
-version = "0.1.0"
+version = "0.1.1"
 description = "A lightweight library for handling ASS subtitles"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -27,5 +27,6 @@ Homepage = "https://github.com/oborozuk1/light-ass"
 Repository = "https://github.com/oborozuk1/light-ass.git"
 "Bug Tracker" = "https://github.com/oborozuk1/light-ass/issues"
 
-[tool.setuptools]
-packages = ["light_ass"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["light_ass*"]
