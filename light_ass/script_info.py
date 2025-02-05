@@ -60,7 +60,11 @@ class ScriptInfo(dict):
             for key, value in info.items():
                 self[key] = value
 
-    def sort(self):
+    def sort(self) -> None:
+        """
+        Sort the script info in default order.
+        :return: None
+        """
         mapping = {key: i for i, key in enumerate(self._formats.keys())}
         new = sorted(self.items(), key=lambda x: mapping.get(x[0], 99))
         self.clear()

@@ -1,5 +1,5 @@
 from itertools import takewhile
-from typing import overload, Optional, Self
+from typing import overload, Self
 
 
 class AssColor:
@@ -42,7 +42,7 @@ class AssColor:
         self.value = value  # RGBA
 
     @property
-    def r(self):
+    def r(self) -> int:
         return (self.value >> 24) & 0xFF
 
     @r.setter
@@ -50,7 +50,7 @@ class AssColor:
         self.value = (self.value & 0x00FFFFFF) | (value << 24)
 
     @property
-    def g(self):
+    def g(self) -> int:
         return (self.value >> 16) & 0xFF
 
     @g.setter
@@ -58,7 +58,7 @@ class AssColor:
         self.value = (self.value & 0xFF00FFFF) | (value << 16)
 
     @property
-    def b(self):
+    def b(self) -> int:
         return (self.value >> 8) & 0xFF
 
     @b.setter
@@ -66,7 +66,7 @@ class AssColor:
         self.value = (self.value & 0xFFFF00FF) | (value << 8)
 
     @property
-    def a(self):
+    def a(self) -> int:
         return self.value & 0xFF
 
     @a.setter
@@ -83,10 +83,10 @@ class AssColor:
         except ValueError:
             return False
 
-    def format(self, template: Optional[str] = None) -> str:
+    def format(self, template: str | None = None) -> str:
         """
-        Format the color to a string.
-        :param template: The format string, default is "&H{A}{B}{G}{R}" if alpha is present, "&H{B}{G}{R}" otherwise.
+        Format the color into a template string.
+        :param template: The template string, default is "&H{A}{B}{G}{R}" if alpha is present, "&H{B}{G}{R}" otherwise.
         :return: The formatted color string.
         """
         if template is None:

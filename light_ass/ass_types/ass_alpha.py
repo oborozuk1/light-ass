@@ -12,7 +12,11 @@ class AssAlpha:
             raise ValueError("Unsupported type")
 
     @property
-    def hex_value(self):
+    def hex_value(self) -> str:
+        """
+        Get the alpha value as a hex string.
+        :return: The alpha value as a hex string.
+        """
         from ..utils import clamp
 
         val = clamp(self.value, 0, 255)
@@ -20,6 +24,11 @@ class AssAlpha:
 
     @staticmethod
     def parse(s: str | int) -> int:
+        """
+        Parse a string or integer to an alpha value.
+        :param s: The string or integer to parse.
+        :return: The alpha value.
+        """
         if isinstance(s, int):
             if 0 <= s <= 255:
                 return s
@@ -33,6 +42,11 @@ class AssAlpha:
         raise ValueError("Invalid alpha value")
 
     def format(self, template: str = "&H{A}&") -> str:
+        """
+        Format the alpha value into the template string.
+        :param template: The template string. "{A}" represents the alpha value.
+        :return: The formatted string.
+        """
         return template.format(A=self.hex_value)
 
     def __eq__(self, other: str | int | Self):

@@ -178,12 +178,23 @@ class Styles(dict[str, Style]):
     def __str__(self):
         return "\n".join((str(style) for style in self.values()))
 
-    def set(self, style: Style):
+    def set(self, style: Style) -> None:
+        """
+        Add a style to the collection. If the style name is already in use, it will be replaced.
+        :param style: The style to add.
+        :return: None
+        """
         self[style.name] = style
 
-    def rename(self, old_name: str, new_name: str):
+    def rename(self, old_name: str, new_name: str) -> None:
+        """
+        Rename a style. Note that you should use Subtitle.rename_style if you want to rename a style in a Subtitle object.
+        :param old_name: The name of the style to rename.
+        :param new_name: The new name of the style.
+        :return: None
+        """
         if old_name not in self:
-            raise KeyError(f"{old_name} is not a valid style name")
+            raise KeyError(f"{old_name} does not exist")
         if new_name in self:
             raise KeyError(f"{new_name} is already a style name")
         style = self.pop(old_name)

@@ -33,6 +33,11 @@ class InvalidArgError(Exception):
 
 
 def is_simple_tag(name: str) -> bool:
+    """
+    Check if the tag is a simple tag.
+    :param name: The name of the tag.
+    :return: True if the tag is a simple tag, False otherwise.
+    """
     simple_tags = (
         "xbord", "ybord", "xshad", "yshad", "fax", "fay", "blur", "fscx", "fscy", "fsc", "fsp", "fs", "bord", "frx",
         "fry", "frz", "fr", "fn", "alpha", "an", "a", "c", "1c", "2c", "3c", "4c", "1a", "2a", "3a", "4a", "r", "be",
@@ -42,25 +47,50 @@ def is_simple_tag(name: str) -> bool:
 
 
 def is_complex_tag(name: str) -> bool:
+    """
+    Check if the tag is a complex tag.
+    :param name: The name of the tag.
+    :return: True if the tag is a complex tag, False otherwise.
+    """
     complex_tags = ("t", "clip", "iclip", "move", "fade", "fad", "pos", "org")
     return name in complex_tags
 
 
 def is_line_tag(name: str) -> bool:
+    """
+    Check if the tag is a line tag.
+    :param name: The name of the tag.
+    :return: True if the tag is a line tag, False otherwise.
+    """
     line_tags = ("clip", "iclip", "move", "fade", "fad", "pos", "org", "an", "a")
     return name in line_tags
 
 
 def is_special_tag(name: str) -> bool:
+    """
+    Check if the tag is a special tag. Special tags are Drawing, Text, and Comment.
+    :param name: The name of the tag.
+    return: True if the tag is a special tag, False otherwise.
+    """
     special_tags = ("Comment", "Drawing", "Text")
     return name in special_tags
 
 
 def is_unknown_tag(name: str) -> bool:
+    """
+    Check if the tag is an unknown tag.
+    :param name: The name of the tag.
+    :return: True if the tag is an unknown tag, False otherwise.
+    """
     return not is_special_tag(name) and name not in tag_args
 
 
 def is_nestable_tag(name: str) -> bool:
+    """
+    Check if the tag is a nestable tag.
+    :param name: The name of the tag.
+    :return: True if the tag is a nestable tag, False otherwise.
+    """
     nestable_tags = (
         "xbord", "ybord", "xshad", "yshad", "fax", "fay", "blur", "fscx", "fscy", "fsp", "fs", "bord", "frx",
         "fry", "frz", "fr", "alpha", "c", "1c", "2c", "3c", "4c", "1a", "2a", "3a", "4a", "be", "shad", "clip", "iclip"
@@ -69,6 +99,11 @@ def is_nestable_tag(name: str) -> bool:
 
 
 def format_arg(arg) -> str:
+    """
+    Format an argument.
+    :param arg: The argument to format.
+    :return: The formatted argument.
+    """
     match arg:
         case float():
             arg = f"{arg:g}"
@@ -99,7 +134,11 @@ class Tag:
     def __str__(self):
         return self.to_string()
 
-    def to_string(self):
+    def to_string(self) -> str:
+        """
+        Convert the tag to a string.
+        :return: The string representation of the tag.
+        """
         if self.is_special_tag:
             return self.args[0]
         if len(self.args) == 0:
@@ -111,22 +150,42 @@ class Tag:
 
     @property
     def is_simple_tag(self) -> bool:
+        """
+        Check if the tag is a simple tag.
+        :return: True if the tag is a simple tag, False otherwise.
+        """
         return is_simple_tag(self.name)
 
     @property
     def is_complex_tag(self) -> bool:
+        """
+        Check if the tag is a complex tag.
+        :return: True if the tag is a complex tag, False otherwise.
+        """
         return is_complex_tag(self.name)
 
     @property
     def is_line_tag(self) -> bool:
+        """
+        Check if the tag is a line tag.
+        :return: True if the tag is a line tag, False otherwise.
+        """
         return is_line_tag(self.name)
 
     @property
     def is_special_tag(self) -> bool:
+        """
+        Check if the tag is a special tag.
+        :return: True if the tag is a special tag, False otherwise.
+        """
         return is_special_tag(self.name)
 
     @property
     def is_unknown_tag(self) -> bool:
+        """
+        Check if the tag is an unknown tag.
+        :return: True if the tag is an unknown tag, False otherwise.
+        """
         return is_unknown_tag(self.name)
 
     @staticmethod
@@ -151,6 +210,12 @@ class Tag:
 
     @staticmethod
     def validate_args(name: str, args: Sequence[Any]) -> tuple[tuple, bool]:
+        """
+        Validate the arguments of a tag.
+        :param name: The name of the tag.
+        :param args: The arguments of the tag.
+        :return: A tuple containing the validated arguments and a boolean indicating if the tag is valid.
+        """
         if is_special_tag(name):
             return tuple(args), True
         valid = False
@@ -253,7 +318,7 @@ def _parse_kx_arg(s: str) -> float:
     return int(val * 10) / 10
 
 
-# def parse_k_arg(s: str) -> float:
+# def _parse_k_arg(s: str) -> float:
 #     val = parse_float(s)
 #     if val == 100:
 #         raise FallbackError
@@ -326,7 +391,13 @@ tag_args = {
 }
 
 
-def split_tags(block, nested=False):
+def split_tags(block: str, nested: bool = False) -> list[Tag]:
+    """
+    Split tags from an override tag block.
+    :param block: The override tag block.
+    :param nested: Whether the block is in a \t tag.
+    :return: A list of Tag objects.
+    """
     result = []
     while block:
         comment = "".join(takewhile(lambda x: x != "\\", block))

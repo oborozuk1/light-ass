@@ -68,6 +68,10 @@ class AssTime:
         raise TypeError("Unsupported type")
 
     def to_str(self) -> str:
+        """
+        Convert the time to a string.
+        :return: The time as a string.
+        """
         ms = max(0, self.time)
         ms = int(round(ms))
         h, ms = divmod(ms, 3600000)

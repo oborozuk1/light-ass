@@ -82,14 +82,27 @@ class Dialog(dict):
         return "{}: {}".format("Comment" if self.comment else "Dialogue", ",".join(dialog_line))
 
     def shift(self, ms: int) -> None:
+        """
+        Shift the start and end time of the event by milliseconds.
+        :param ms: The amount of milliseconds to shift the event by.
+        :return: None
+        """
         self.start += ms
         self.end += ms
 
     def parse_tags(self) -> list[Tag]:
+        """
+        Parse the tags in the text of the event.
+        :return: A list of Tag objects.
+        """
         return parse_tags(self.text)
 
     @property
     def text_stripped(self) -> str:
+        """
+        Return the text of the event with override blocks removed.
+        :return: The text of the event with override blocks removed.
+        """
         return OVERRIDE_BLOCK_PATTERN.sub("", self.text)
 
     @staticmethod
@@ -103,13 +116,18 @@ class Dialog(dict):
 
 
 class Events(list[Dialog]):
-    def pop(self, index: int | Sequence[int] = -1):
+    def pop(self, index: int | Sequence[int] = -1) -> None:
+        """
+        Remove the event at the specified index.
+        :param index: The index of the event to remove, or a sequence of indices.
+        :return: None
+        """
         if isinstance(index, int):
             index = (index,)
         for i in sorted(index, reverse=True):
             super().pop(i)
 
-    def shift(self, ms: int, range_: Sequence[int] | None = None):
+    def shift(self, ms: int, range_: Sequence[int] | None = None) -> None:
         """
         Shift the start and end time of events by milliseconds.
         :param ms: The amount of milliseconds to shift the events by.
@@ -121,7 +139,13 @@ class Events(list[Dialog]):
         for i in range_:
             self[i].shift(ms)
 
-    def sort(self, *, key = None, reverse = False):
+    def sort(self, *, key = None, reverse = False) -> None:
+        """
+        Sort the events in ascending order.
+        :param key: A function that returns the value to sort by.
+        :param reverse: Whether to sort in descending order.
+        :return: None
+        """
         if key is None:
             key = lambda x: x.start
         super().sort(key = key, reverse = reverse)

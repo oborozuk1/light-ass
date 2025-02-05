@@ -137,6 +137,12 @@ class Subtitle:
         self.info |= default_info | self.info
 
     def rename_style(self, old_name: str, new_name: str):
+        """
+        Rename a style.
+        :param old_name: The name of the style to rename.
+        :param new_name: The new name of the style.
+        :return:
+        """
         self.styles.rename(old_name, new_name)
         for event in self.events:
             if event.style == old_name:
@@ -183,7 +189,7 @@ class Subtitle:
         with open(path, "w", encoding=encoding) as f:
             f.write(self.to_string())
 
-    def copy(self):
+    def copy(self) -> "Subtitle":
         """
         Create a deep copy of the Subtitle object.
         :return: A deep copy of the Subtitle object.
