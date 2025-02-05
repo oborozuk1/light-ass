@@ -1,8 +1,6 @@
 from itertools import takewhile
 from typing import Self
 
-from ..utils import clamp
-
 
 class AssAlpha:
     def __init__(self, val: str | int | Self):
@@ -15,6 +13,8 @@ class AssAlpha:
 
     @property
     def hex_value(self):
+        from ..utils import clamp
+
         val = clamp(self.value, 0, 255)
         return f"{val:02x}"
 

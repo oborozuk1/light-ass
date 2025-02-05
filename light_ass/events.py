@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from .ass_types.ass_time import AssTime
+from .ass_types import AssTime
 from .constants import OVERRIDE_BLOCK_PATTERN
 from .tag_parser import Tag, parse_tags
 from .utils import validate_value

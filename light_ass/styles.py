@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from typing import Self, Literal
 
-from .ass_types.ass_color import AssColor
+from .ass_types import AssColor
 from .utils import validate_value
 
 StyleKeys = Literal[

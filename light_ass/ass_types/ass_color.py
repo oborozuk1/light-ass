@@ -98,9 +98,3 @@ class AssColor:
             G="%02X" % self.g,
             R="%02X" % self.r,
         )
-
-
-class AssTagColor(AssColor):
-    def __init__(self, color: str | AssColor):
-        super().__init__(color)
-

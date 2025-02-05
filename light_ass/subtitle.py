@@ -2,11 +2,11 @@ import copy
 import pathlib
 from collections import defaultdict
 
-from .tag_parser import join_tags
 from .constants import SECTION_PATTERN, AssSectionHeader, DEFAULT_STYLES_FORMAT, DEFAULT_EVENTS_FORMAT
 from .events import Dialog, Events
 from .script_info import ScriptInfo
 from .styles import Styles, Style
+from .tag_parser import join_tags
 from .utils import to_snake_case, detect_file_encoding
 
 __all__ = [
