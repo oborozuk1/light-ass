@@ -248,7 +248,7 @@ def join_tags(tags: list[Tag], skip_comment: bool = False) -> str:
         if tag.name in ("Drawing", "Text"):
             if in_tag:
                 text += "}"
-            text += tag.args[0]
+            text += str(tag.args[0])
             in_tag = False
         else:
             if not in_tag:
