@@ -2,6 +2,7 @@ import copy
 import pathlib
 from collections import defaultdict
 
+from .tag_parser import join_tags
 from .constants import SECTION_PATTERN, AssSectionHeader, DEFAULT_STYLES_FORMAT, DEFAULT_EVENTS_FORMAT
 from .events import Dialog, Events
 from .script_info import ScriptInfo
@@ -140,14 +141,14 @@ class Subtitle:
         for event in self.events:
             if event.style == old_name:
                 event.style = new_name
-            # tags = event.parse_tags()
-            # flag = False
-            # for tag in tags:
-            #     if tag.name == "r" and tag.value == old_name:
-            #         tag.value = new_name
-            #         flag = True
-            # if flag:
-            #     event.text = "".join(str(tag) for tag in tags)
+            tags = event.parse_tags()
+            flag = False
+            for tag in tags:
+                if tag.name == "r" and tag.args == (old_name,):
+                    tag.args = (new_name,)
+                    flag = True
+            if flag:
+                event.text = join_tags(tags)
 
     def to_string(self) -> str:
         """
