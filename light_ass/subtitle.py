@@ -194,22 +194,14 @@ class Subtitle:
         return f"Subtitle(with {len(self.events)} events)"
 
     def __setattr__(self, key, value):
-        if key == "info":
-            if isinstance(value, ScriptInfo):
-                super().__setattr__(key, value)
-            elif isinstance(value, dict):
-                super().__setattr__(key, ScriptInfo(value))
-            else:
-                raise TypeError(f"Invalid type for info: {type(value)}")
-        elif key == "styles":
-            if isinstance(value, Styles):
-                super().__setattr__(key, value)
-            elif isinstance(value, dict):
-                super().__setattr__(key, Styles(value))
-            else:
-                raise TypeError(f"Invalid type for styles: {type(value)}")
-        else:
-            super().__setattr__(key, value)
+        match key:
+            case "info":
+                value = ScriptInfo(value)
+            case "styles":
+                value = Styles(value)
+            case "events":
+                value = Events(value)
+        super().__setattr__(key, value)
 
 
 load = Subtitle.load
