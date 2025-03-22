@@ -156,5 +156,5 @@ class Styles(dict[str, Style]):
         if new_name in self:
             raise KeyError(f"{new_name} is already a style name")
         style = self.pop(old_name)
-        style._name = new_name
+        style.name = new_name
         self[new_name] = style
