@@ -63,10 +63,12 @@ class Dialog:
     def from_ass_line(cls, line: str, format_order: Iterable[str] | None = None):
         if format_order is None:
             format_order = DEFAULT_EVENTS_FORMAT
+        
+        length = sum(1 for _ in format_order)
 
         kwargs = {"comment": line.startswith("Comment:")}
         _, _, line = line.partition(":")
-        fields = line.split(",")
+        fields = line.split(",", length - 1)
         for key, value in zip(format_order, fields):
             key = to_snake_case(key)
             value = value.strip()

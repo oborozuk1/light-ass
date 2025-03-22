@@ -81,8 +81,10 @@ class Style:
         if format_order is None:
             format_order = DEFAULT_STYLES_FORMAT
 
+        length = sum(1 for _ in format_order)
+
         kwargs = {}
-        fields = line.removeprefix("Style:").split(",")
+        fields = line.removeprefix("Style:").split(",", length - 1)
         for key, value in zip(format_order, fields):
             key = to_snake_case(key)
             value = value.strip()
