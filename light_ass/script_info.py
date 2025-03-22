@@ -1,4 +1,8 @@
-from typing import Any, Self, Literal, overload
+from typing import Any, Self, Literal
+
+__all__ = [
+    "ScriptInfo",
+]
 
 ScriptInfoKeys = Literal[
     "Title",

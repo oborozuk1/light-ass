@@ -1,8 +1,5 @@
-from . import subtitle, script_info, styles, events, ass_types, tag_parser
+from .events import *
+from .script_info import *
+from .styles import *
+from ass_types import *
 from .subtitle import *
-
-__all__ = [
-    "load",
-    "from_string",
-    "Subtitle",
-]
