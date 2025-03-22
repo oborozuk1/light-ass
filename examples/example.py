@@ -27,9 +27,9 @@ data here
 
 doc = Subtitle.from_string(ass_text, drop_unknown_sections=False)
 
-print(doc.styles["OPJP"]["color1"])  # &H003493EF
+print(doc.styles["OPJP"].color1)  # &H003493EF
 doc.styles["OPJP"].color1 = "FF3493EF"
-print(doc.styles["OPJP"]["color1"])  # &HFF3493EF
+print(doc.styles["OPJP"].color1)  # &HFF3493EF
 try:
     doc.styles["OPJP"].color1 = "no way"
 except ValueError:
