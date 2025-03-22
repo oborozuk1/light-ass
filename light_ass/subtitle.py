@@ -64,7 +64,7 @@ class Subtitle:
                 self.messages.append(line)
             else:
                 key, _, value = map(str.strip, line.partition(":"))
-                self.info[key] = value
+                self.info.set(key, value)
 
         def parse_format_line(line: str, default):
             if strict and formats.get(section):
@@ -76,7 +76,7 @@ class Subtitle:
         def check_format():
             if not formats.get(section):
                 if strict:
-                    raise ValueError(f"{section} Format line not declare")
+                    raise ValueError(f"{section} Format line not declared")
                 else:
                     return False
             return True
@@ -87,8 +87,7 @@ class Subtitle:
             elif line.startswith("Style:"):
                 if not check_format():
                     formats[section] = DEFAULT_STYLES_FORMAT
-                _, _, value = map(str.strip, line.partition(":"))
-                self.styles.set(Style(zip(formats[section], value.split(",", len(formats[section]) - 1))))
+                self.styles.set(Style.from_ass_line(line, formats[section]))
             elif strict:
                 raise ValueError(f"Invalid Style line: {line}")
 
@@ -100,9 +99,7 @@ class Subtitle:
             elif line.startswith(("Dialogue:", "Comment:")):
                 if not check_format():
                     formats[section] = DEFAULT_EVENTS_FORMAT
-                _, _, value = map(str.strip, line.partition(":"))
-                event_data = dict(zip(formats[section], value.split(",", len(formats[section]) - 1)))
-                self.events.append(Dialog(comment=line.startswith("Comment:"), **event_data))
+                self.events.append(Dialog.from_ass_line(line, formats[section]))
             elif strict:
                 raise ValueError(f"Invalid Event line: {line}")
 
@@ -134,6 +131,7 @@ class Subtitle:
             "LayoutResX": self.info.get("PlayResX", None) or 1920,
             "LayoutResY": self.info.get("PlayResY", None) or 1080,
         }
+
         self.info |= default_info | self.info
 
     def rename_style(self, old_name: str, new_name: str):
@@ -171,7 +169,7 @@ class Subtitle:
                   "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
 
         for event in self.events:
-            lines.append(str(event))
+            lines.append(event.to_string())
 
         for name, content in self.other_sections.items():
             lines.append(f"\n[{name}]")
@@ -199,15 +197,6 @@ class Subtitle:
     def __repr__(self) -> str:
         return f"Subtitle(with {len(self.events)} events)"
 
-    def __setattr__(self, key, value):
-        match key:
-            case "info":
-                value = ScriptInfo(value)
-            case "styles":
-                value = Styles(value)
-            case "events":
-                value = Events(value)
-        super().__setattr__(key, value)
 
 
 load = Subtitle.load

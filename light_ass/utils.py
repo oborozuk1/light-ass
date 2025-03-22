@@ -1,5 +1,4 @@
 import re
-from collections.abc import Callable
 from itertools import takewhile
 
 INT32_MIN = -2_147_483_648
@@ -42,24 +41,6 @@ def detect_file_encoding(file_path: str, sample_size: int = 1024) -> str | None:
             continue
 
     return None
-
-
-def validate_value(validator: Callable | tuple | dict, value: str):
-    match validator:
-        case validator if callable(validator):
-            return validator(value)
-        case tuple():
-            typ_ = type(validator[0])
-            if typ_(value) in validator:
-                return typ_(value)
-        case dict():
-            if value in validator:
-                return validator[value]
-            if value in validator.values():
-                return value
-        case _:
-            pass
-    raise ValueError(f"Invalid value")
 
 
 def parse_int32(s: str) -> int:

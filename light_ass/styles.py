@@ -1,161 +1,117 @@
-from collections.abc import Iterable
-from typing import Self, Literal
+from dataclasses import dataclass, field
+from typing import Self, Iterable
 
 from .ass_types import AssColor
-from .utils import validate_value
+from .constants import DEFAULT_STYLES_FORMAT
+from .utils import to_snake_case
 
-StyleKeys = Literal[
-    "name",
-    "fontname",
-    "fontsize",
-    "primary_colour",
-    "secondary_colour",
-    "outline_colour",
-    "back_colour",
-    "bold",
-    "italic",
-    "underline",
-    "strike_out",
-    "scale_x",
-    "scale_y",
-    "spacing",
-    "angle",
-    "border_style",
-    "outline",
-    "shadow",
-    "alignment",
-    "margin_l",
-    "margin_r",
-    "margin_v",
-    "encoding",
-    "color1",
-    "color2",
-    "color3",
-    "color4",
-    "align",
+__all__ = [
+    "Style",
+    "Styles",
 ]
 
 
-class Style(dict):
-    _formats = {
-        "name": str,
-        "fontname": str,
-        "fontsize": float,
-        "primary_colour": AssColor,
-        "secondary_colour": AssColor,
-        "outline_colour": AssColor,
-        "back_colour": AssColor,
-        "bold": {"0": False, "-1": True},
-        "italic": {"0": False, "-1": True},
-        "underline": {"0": False, "-1": True},
-        "strike_out": {"0": False, "-1": True},
-        "scale_x": float,
-        "scale_y": float,
-        "spacing": float,
-        "angle": float,
-        "border_style": (1, 3, 4),  # 4 for libass
-        "outline": float,
-        "shadow": float,
-        "alignment": (1, 2, 3, 4, 5, 6, 7, 8, 9),
-        "margin_l": int,
-        "margin_r": int,
-        "margin_v": int,
-        "encoding": int,
-    }
-    _alias = {
-        "color1": "primary_colour",
-        "color2": "secondary_colour",
-        "color3": "outline_colour",
-        "color4": "back_colour",
-        "align": "alignment",
-    }
-
+@dataclass(kw_only=True)
+class Style:
     name: str
-    fontname: str
-    fontsize: float
-    primary_colour: AssColor
-    secondary_colour: AssColor
-    outline_colour: AssColor
-    back_colour: AssColor
-    bold: bool
-    italic: bool
-    underline: bool
-    strike_out: bool
-    scale_x: float
-    scale_y: float
-    spacing: float
-    angle: float
-    border_style: int
-    outline: float
-    shadow: float
-    alignment: int
-    margin_l: int
-    margin_r: int
-    margin_v: int
-    encoding: int
-
-    color1: AssColor
-    color2: AssColor
-    color3: AssColor
-    color4: AssColor
-    align: int
-
-    def __init__(self, from_: dict | Iterable | None = None, **kwargs):
-        if from_ is not None:
-            kwargs = dict(from_)
-        if set(kwargs.keys()) != set(self._formats.keys()):
-            raise ValueError("Keys of kwargs must equal formats")
-        super().__init__({k: self.validate_value(k, v) for k, v in kwargs.items() if k != "name"})
-        self._name = kwargs["name"]
+    fontname: str = "Arial"
+    fontsize: float | int = 48.0
+    primary_colour: AssColor = field(default_factory=lambda: AssColor(255, 255, 255))
+    secondary_colour: AssColor = field(default_factory=lambda: AssColor(255, 0, 0))
+    outline_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    back_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    bold: bool = False
+    italic: bool = False
+    underline: bool = False
+    strike_out: bool = False
+    scale_x: float | int = 100.0
+    scale_y: float | int = 100.0
+    spacing: float | int = 0.0
+    angle: float | int = 0.0
+    border_style: int = 1
+    outline: float | int = 2.0
+    shadow: float | int = 2.0
+    alignment: int = 2
+    margin_l: int = 10
+    margin_r: int = 10
+    margin_v: int = 10
+    encoding: int = 1
 
     @property
-    def name(self):
-        return self._name
+    def color1(self) -> AssColor:
+        return self.primary_colour
 
-    def __getitem__(self, key: StyleKeys | str):
-        if key in self._alias:
-            key = self._alias[key]
-        return super().__getitem__(key)
+    @color1.setter
+    def color1(self, value: AssColor) -> None:
+        self.primary_colour = value
 
-    def __setitem__(self, key: StyleKeys | str, value):
-        if key in self._alias:
-            key = self._alias[key]
-        if key in self._formats:
-            super().__setitem__(key, self.validate_value(key, value))
-        else:
-            raise KeyError(f"{key} is not a valid key")
+    @property
+    def color2(self) -> AssColor:
+        return self.secondary_colour
 
-    def __getattr__(self, key: str):
-        return self[key]
+    @color2.setter
+    def color2(self, value: AssColor) -> None:
+        self.secondary_colour = value
 
-    def __setattr__(self, key: str, value) -> None:
-        if key.startswith("_"):
-            super().__setattr__(key, value)
-        else:
-            self[key] = value
+    @property
+    def color3(self) -> AssColor:
+        return self.outline_colour
+
+    @color3.setter
+    def color3(self, value: AssColor) -> None:
+        self.outline_colour = value
+
+    @property
+    def color4(self) -> AssColor:
+        return self.back_colour
+
+    @color4.setter
+    def color4(self, value: AssColor) -> None:
+        self.back_colour = value
+
+    @property
+    def align(self) -> int:
+        return self.alignment
 
     def __repr__(self) -> str:
-        return "Style({})".format(",".join(f"{key}={value}" for key, value in self.items()))
+        return f"Style(name={self.name})"
 
-    def __str__(self) -> str:
-        style_line = [self.name]
-        for key, value in self.items():
-            if isinstance(self._formats[key], dict):
-                rev_dict = {v: k for k, v in self._formats[key].items()}
-                value = rev_dict[value]
-            elif type(value) is float:
-                value = "{:g}".format(value)
-            style_line.append(str(value))
-        return f"Style: {','.join(style_line)}"
+    @classmethod
+    def from_ass_line(cls, line: str, format_order: Iterable[str] | None = None):
+        if format_order is None:
+            format_order = DEFAULT_STYLES_FORMAT
 
-    @staticmethod
-    def validate_value(key, value):
-        if key in Style._alias:
-            key = Style._alias[key]
-        try:
-            return validate_value(Style._formats[key], value)
-        except ValueError:
-            raise ValueError(f"Invalid value for {key}: {value}")
+        kwargs = {}
+        fields = line.removeprefix("Style:").split(",")
+        for key, value in zip(format_order, fields):
+            key = to_snake_case(key)
+            value = value.strip()
+            if key in ("bold", "italic", "underline", "strike_out"):
+                value = value == "-1"
+            elif key in ("margin_l", "margin_r", "margin_v"):
+                value = int(value)
+            elif key in ("fontsize", "scale_x", "scale_y", "spacing", "angle", "outline", "shadow"):
+                value = float(value)
+            kwargs[key] = value
+
+        return cls(**kwargs)
+
+    def to_string(self) -> str:
+        fontsize = int(self.fontsize) if self.fontsize.is_integer() else self.fontsize
+        bold = -1 if self.bold else 0
+        italic = -1 if self.italic else 0
+        underline = -1 if self.underline else 0
+        strike_out = -1 if self.strike_out else 0
+        scale_x = int(self.scale_x) if self.scale_x.is_integer() else self.scale_x
+        scale_y = int(self.scale_y) if self.scale_y.is_integer() else self.scale_y
+        angle = int(self.angle) if self.angle.is_integer() else self.angle
+        spacing = int(self.spacing) if self.spacing.is_integer() else self.spacing
+        outline = int(self.outline) if self.outline.is_integer() else self.outline
+        shadow = int(self.shadow) if self.shadow.is_integer() else self.shadow
+        return (f"Style: {self.name},{self.fontname},{fontsize},{self.primary_colour},{self.secondary_colour},"
+                f"{self.outline_colour},{self.back_colour},{bold},{italic},{underline},{strike_out},{scale_x},{scale_y},"
+                f"{spacing},{angle},{self.border_style},{outline},{shadow},{self.alignment},"
+                f"{self.margin_l},{self.margin_r},{self.margin_v},{self.encoding}")
 
 
 class Styles(dict[str, Style]):

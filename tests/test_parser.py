@@ -14,7 +14,7 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(doc.styles["Default"].fontname, "Arial")
         self.assertEqual(doc.styles["Default"].fontsize, 20)
-        self.assertEqual(str(doc.styles["Default"]), "Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,2,5,10,10,10,1")
+        self.assertEqual(doc.styles["Default"].to_string(), "Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,2,5,10,10,10,1")
 
         self.assertEqual(len(doc.events), 5)
         self.assertEqual(doc.events[0].start, 0)

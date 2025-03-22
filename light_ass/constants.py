@@ -21,4 +21,4 @@ DEFAULT_EVENTS_FORMAT = ("Layer", "Start", "End", "Style", "Name", "MarginL", "M
 
 SECTION_PATTERN = re.compile(r"^\s*\[([^]]+)]\s*")
 
-OVERRIDE_BLOCK_PATTERN = re.compile(r"(?<!\\){([^}]*)}")
+OVERRIDE_BLOCK_PATTERN = re.compile(r"(?<!\\){(.*?)}")

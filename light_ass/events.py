@@ -1,85 +1,91 @@
 from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Iterable
 
 from .ass_types import AssTime
-from .constants import OVERRIDE_BLOCK_PATTERN
+from .constants import OVERRIDE_BLOCK_PATTERN, DEFAULT_EVENTS_FORMAT
 from .tag_parser import Tag, parse_tags
-from .utils import validate_value
+from .utils import to_snake_case
+
+__all__ = [
+    "Dialog",
+    "Events",
+]
 
 
-class Dialog(dict):
-    _formats = {
-        "comment": bool,
-        "layer": int,
-        "start": AssTime,
-        "end": AssTime,
-        "style": str,
-        "name": str,
-        "margin_l": int,
-        "margin_r": int,
-        "margin_v": int,
-        "effect": str,
-        "text": str,
-    }
-    _alias = {
-        "commented": "comment",
-        "start_time": "start",
-        "end_time": "end",
-        "actor": "name",
-    }
-
-    comment: bool
-    layer: int
-    start: AssTime
-    end: AssTime
-    style: str
-    name: str
-    margin_l: int
-    margin_r: int
-    margin_v: int
-    effect: str
+@dataclass(kw_only=True)
+class Dialog:
     text: str
-    commented: bool
-    start_time: AssTime
-    end_time: AssTime
-    actor: str
+    comment: bool = False
+    layer: int = 0
+    start: AssTime = field(default_factory=lambda: AssTime(0))
+    end: AssTime = field(default_factory=lambda: AssTime(0))
+    style: str = "Default"
+    name: str = ""
+    margin_l: int = 0
+    margin_r: int = 0
+    margin_v: int = 0
+    effect: str = ""
 
-    def __init__(self, **kwargs) -> None:
-        if set(kwargs.keys()) != set(self._formats.keys()):
-            raise ValueError("Keys of kwargs must equal formats")
-        super().__init__()
-        for key, value in kwargs.items():
-            self[key] = self.validate_value(key, value)
+    @property
+    def start_time(self) -> AssTime:
+        return self.start
 
-    def __getattr__(self, name: str):
-        if name in self._alias:
-            name = self._alias[name]
-        if name in self._formats:
-            return self[name]
-        else:
-            raise AttributeError(f"{name} is not a valid attribute")
+    @start_time.setter
+    def start_time(self, value: AssTime) -> None:
+        self.start = value
 
-    def __setattr__(self, name: str, value):
-        if name in self._alias:
-            name = self._alias[name]
-        if name in self._formats:
-            self[name] = Dialog.validate_value(name, value)
-        else:
-            raise AttributeError(f"{name} is not a valid attribute")
+    @property
+    def end_time(self) -> AssTime:
+        return self.end
 
-    def __repr__(self) -> str:
-        return "Dialog({})".format(
-            ",".join(f"{key}={value}" for key, value in self.items())
-        )
+    @end_time.setter
+    def end_time(self, value: AssTime) -> None:
+        self.end = value
 
-    def __str__(self) -> str:
-        dialog_line = []
-        for key, value in self.items():
-            if key == "comment":
-                continue
-            if type(value) is float:
-                value = f"{value:g}"
-            dialog_line.append(str(value))
-        return "{}: {}".format("Comment" if self.comment else "Dialogue", ",".join(dialog_line))
+    @property
+    def actor(self) -> str:
+        return self.name
+
+    @actor.setter
+    def actor(self, value: str) -> None:
+        self.name = value
+
+    @property
+    def text_stripped(self) -> str:
+        """
+        Return the text of the event with override blocks removed.
+        :return: The text of the event with override blocks removed.
+        """
+        return OVERRIDE_BLOCK_PATTERN.sub("", self.text)
+
+    @classmethod
+    def from_ass_line(cls, line: str, format_order: Iterable[str] | None = None):
+        if format_order is None:
+            format_order = DEFAULT_EVENTS_FORMAT
+
+        kwargs = {"comment": line.startswith("Comment:")}
+        _, _, line = line.partition(":")
+        fields = line.split(",")
+        for key, value in zip(format_order, fields):
+            key = to_snake_case(key)
+            value = value.strip()
+            if key in ("start", "end"):
+                value = AssTime(value)
+            elif key in ("layer", "margin_l", "margin_r", "margin_v"):
+                value = int(value)
+            kwargs[key] = value
+
+        return cls(**kwargs)
+
+    def to_string(self) -> str:
+        """
+        Convert the Dialog object to a string.
+        :return: A string representation of the Dialog object.
+        """
+        type_ = "Dialogue" if not self.comment else "Comment"
+        return (f"{type_}: {self.layer},{self.start},{self.end},{self.style},{self.name},"
+                f"{self.margin_l},{self.margin_r},{self.margin_v},{self.effect},{self.text}")
 
     def shift(self, ms: int) -> None:
         """
@@ -96,23 +102,6 @@ class Dialog(dict):
         :return: A list of Tag objects.
         """
         return parse_tags(self.text)
-
-    @property
-    def text_stripped(self) -> str:
-        """
-        Return the text of the event with override blocks removed.
-        :return: The text of the event with override blocks removed.
-        """
-        return OVERRIDE_BLOCK_PATTERN.sub("", self.text)
-
-    @staticmethod
-    def validate_value(key, value):
-        if key in Dialog._alias:
-            key = Dialog._alias[key]
-        try:
-            return validate_value(Dialog._formats[key], value)
-        except ValueError:
-            raise ValueError(f"Invalid value for {key}: {value}")
 
 
 class Events(list[Dialog]):
@@ -139,7 +128,7 @@ class Events(list[Dialog]):
         for i in range_:
             self[i].shift(ms)
 
-    def sort(self, *, key = None, reverse = False) -> None:
+    def sort(self, *, key=None, reverse=False) -> None:
         """
         Sort the events in ascending order.
         :param key: A function that returns the value to sort by.
@@ -148,4 +137,4 @@ class Events(list[Dialog]):
         """
         if key is None:
             key = lambda x: x.start
-        super().sort(key = key, reverse = reverse)
+        super().sort(key=key, reverse=reverse)

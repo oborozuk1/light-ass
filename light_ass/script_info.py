@@ -1,6 +1,4 @@
-from typing import Any, Self, Literal
-
-from .utils import validate_value
+from typing import Any, Self, Literal, overload
 
 ScriptInfoKeys = Literal[
     "Title",
@@ -29,29 +27,15 @@ ScriptInfoKeys = Literal[
 
 
 class ScriptInfo(dict):
-    _formats = {
-        "Title": str,
-        "Original Script": str,
-        "Original Translation": str,
-        "Original Editing": str,
-        "Original Timing": str,
-        "Synch Point": str,
-        "Script Updated By": str,
-        "ScriptType": str,
-        "Update Details": str,
+    _TYPE_RULES = {
         "PlayResX": int,
         "PlayResY": int,
-        "PlayDepth": int,
-        "ScaledBorderAndShadow": {"yes": True, "no": False},
-        "WrapStyle": (0, 1, 2, 3),
-        "YCbCr Matrix": ("None", "TV.601", "PC.601", "TV.709", "PC.709", "TV.FCC", "PC.FCC", "TV.240M", "PC.240M"),
-        "Collisions": ("Normal", "Reverse"),
-        "Timer": float,
         "LayoutResX": int,
         "LayoutResY": int,
-        # libass extensions
-        "Kerning": {"yes": True, "no": False},
-        "Language": str,
+        "PlayDepth": int,
+        "WrapStyle": int,
+        "ScaledBorderAndShadow": lambda s: s.lower() == "yes",
+        "Kerning": lambda s: s.lower() == "yes",
     }
 
     def __init__(self, info: Self | dict[str, Any] | None = None):
@@ -60,24 +44,22 @@ class ScriptInfo(dict):
             for key, value in info.items():
                 self[key] = value
 
-    def sort(self) -> None:
-        """
-        Sort the script info in default order.
-        :return: None
-        """
-        mapping = {key: i for i, key in enumerate(self._formats.keys())}
-        new = sorted(self.items(), key=lambda x: mapping.get(x[0], 99))
-        self.clear()
-        self.update(new)
-
     def __getitem__(self, key: ScriptInfoKeys | str):
         return super().__getitem__(key)
 
-    def __setitem__(self, key: ScriptInfoKeys | str, value):
+    def __setitem__(self, key: ScriptInfoKeys | str, value: Any) -> None:
+        super().__setitem__(key, value)
+
+    def set(self, key: ScriptInfoKeys | str, value):
         if value is None:
             self.pop(key)
+        elif key in self._TYPE_RULES:
+            try:
+                super().__setitem__(key, self._TYPE_RULES[key](value))
+            except ValueError:
+                super().__setitem__(key, value)
         else:
-            super().__setitem__(key, self.validate_value(key, value))
+            super().__setitem__(key, value)
 
     def __repr__(self) -> str:
         return f"ScriptInfo({super().__repr__()})"
@@ -85,17 +67,7 @@ class ScriptInfo(dict):
     def __str__(self) -> str:
         infos = []
         for key, value in self.items():
-            if isinstance(self._formats[key], dict):
-                rev_dict = {v: k for k, v in self._formats[key].items()}
-                value = rev_dict[value]
+            if isinstance(value, bool):
+                value = "yes" if value else "no"
             infos.append(f"{key}: {value}")
         return "\n".join(infos)
-
-    @staticmethod
-    def validate_value(key, value):
-        if key not in ScriptInfo._formats:
-            return value
-        try:
-            return validate_value(ScriptInfo._formats[key], value)
-        except ValueError:
-            raise ValueError(f"Invalid value for {key}: {value}")
