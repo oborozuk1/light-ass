@@ -133,9 +133,6 @@ class Styles(dict[str, Style]):
     def __repr__(self):
         return f"Styles({", ".join(self.keys())})"
 
-    def __str__(self):
-        return "\n".join((str(style) for style in self.values()))
-
     def set(self, style: Style) -> None:
         """
         Add a style to the collection. If the style name is already in use, it will be replaced.

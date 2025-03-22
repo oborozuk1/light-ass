@@ -162,10 +162,12 @@ class Subtitle:
         lines = ["[Script Info]"]
         if self.messages:
             lines.append("\n".join(f"; {message}" for message in self.messages))
+
+        styles = "\n".join(style.to_string() for style in self.styles.values())
         lines += [str(self.info), "\n[V4+ Styles]",
                   "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, "
                   "Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, "
-                  "Shadow, Alignment, MarginL, MarginR, MarginV, Encoding", str(self.styles), "\n[Events]",
+                  "Shadow, Alignment, MarginL, MarginR, MarginV, Encoding", styles, "\n[Events]",
                   "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text"]
 
         for event in self.events:
