@@ -1,8 +1,14 @@
 class AssTime:
     def __init__(self, time: "str | int | float | AssTime"):
         if isinstance(time, str):
-            h, m, s = map(float, time.split(":"))
-            self.time = int((h * 3600 + m * 60 + s) * 1000)
+            hours, minutes, seconds_ms = time.split(":")
+            seconds, milliseconds = seconds_ms.split(".")
+            self.time = (
+                    int(hours) * 3600000 +
+                    int(minutes) * 60000 +
+                    int(seconds) * 1000 +
+                    int(milliseconds.ljust(3, "0"))
+            )
         elif isinstance(time, (int, float, AssTime)):
             self.time = int(time)
         else:
