@@ -1,3 +1,4 @@
+import re
 from itertools import takewhile, dropwhile
 from typing import Sequence, Any
 
@@ -398,39 +399,38 @@ def split_tags(block: str, nested: bool = False) -> list[Tag]:
     :param nested: Whether the block is in a \t tag.
     :return: A list of Tag objects.
     """
+    if not block:
+        return []
+
     result = []
-    while block:
-        comment = "".join(takewhile(lambda x: x != "\\", block))
-        if comment:
+    tag_pattern = re.compile(r'\\([^(\\]+)(?:\(([^)]*)\))?')
+
+    pos = 0
+
+    while pos < len(block):
+        next_tag = block.find('\\', pos)
+
+        if next_tag > pos:
+            comment = block[pos:next_tag]
             result.append(Tag("Comment", [comment]))
-        block = block[len(comment):]
-        block = block.lstrip("\\")
-        if not block:
+            pos = next_tag
+
+        if next_tag == -1:
+            if pos < len(block):
+                result.append(Tag("Comment", [block[pos:]]))
             break
-        name = "".join(takewhile(lambda x: x not in "(\\", block))
-        if not name:
+
+        match = tag_pattern.match(block, pos)
+        if not match:
+            pos += 1
             continue
-        block = block[len(name):]
+
+        name = match.group(1)
+        args_str = match.group(2)
         args = []
-        if block.startswith("("):
-            block = block[1:]
-            while True:
-                block = "".join(dropwhile(lambda x: x in " \t", block))
-                arg = "".join(takewhile(lambda x: x not in ",)\\", block))
-                block = block[len(arg):]
-                if block.startswith(","):
-                    if arg:
-                        args.append(arg)
-                    block = block[1:]
-                else:
-                    if block.startswith("\\"):
-                        arg = block[:block.find(")")] if block.find(")") != -1 else block
-                        block = block[len(arg):]
-                    if arg:
-                        args.append(arg)
-                    if block:
-                        block = block[1:]
-                    break
+
+        if args_str:
+            args = [arg.strip() for arg in args_str.split(',')]
 
         for tag in tag_args:
             if name.startswith(tag):
@@ -438,24 +438,21 @@ def split_tags(block: str, nested: bool = False) -> list[Tag]:
                     args.append(name[len(tag):])
                 name = tag
                 break
-        if name not in tag_args and not args:  # deals with unknown simple tags
-            flag = False
-            tag_name = ""
-            for ch in name:
-                if ch.isdigit() and not flag:
-                    tag_name += ch
-                elif ch.islower():
-                    flag = True
-                    tag_name += ch
-                else:
-                    break
-            if name != tag_name:
-                args.append(name[len(tag_name):])
-            name = tag_name
+
+        if name not in tag_args and not args:
+            match_simple = re.match(r'([0-9]*[a-z]+)(.*)', name)
+            if match_simple:
+                tag_name, remaining = match_simple.groups()
+                if remaining:
+                    args.append(remaining)
+                name = tag_name
+
         tag = Tag(name, args)
         if nested and not is_nestable_tag(name):
             tag.valid = False
         result.append(tag)
+
+        pos = match.end()
 
     return result
 
