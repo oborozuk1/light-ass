@@ -32,6 +32,12 @@ class AssTime:
     def __gt__(self, other):
         return self.time > AssTime(other).time
 
+    def __le__(self, other):
+        return self.time <= AssTime(other).time
+
+    def __ge__(self, other):
+        return self.time >= AssTime(other).time
+
     def __add__(self, other):
         return AssTime(self.time + AssTime(other).time)
 
@@ -51,6 +57,24 @@ class AssTime:
     def __isub__(self, other):
         self.time -= AssTime(other).time
         return self
+
+    def __truediv__(self, other):
+        if isinstance(other, (int, float)):
+            return self.time / other
+        return NotImplemented
+
+    def __floordiv__(self, other):
+        if isinstance(other, (int, float)):
+            return AssTime(self.time // other)
+        return NotImplemented
+
+    def __mul__(self, other):
+        if isinstance(other, (int, float)):
+            return AssTime(int(self.time * other))
+        return NotImplemented
+
+    def __rmul__(self, other):
+        return self * other
 
     def to_string(self) -> str:
         """
