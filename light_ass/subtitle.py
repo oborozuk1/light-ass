@@ -125,7 +125,7 @@ class Subtitle:
 
         default_info = {
             "ScaledBorderAndShadow": True,
-            "YCbCr Matrix": "TV.601",
+            "YCbCr Matrix": "None",
             "PlayResX": self.info.get("LayoutResX", None) or 1920,
             "PlayResY": self.info.get("LayoutResY", None) or 1080,
             "LayoutResX": self.info.get("PlayResX", None) or 1920,
