@@ -399,16 +399,29 @@ def split_tags(block: str, nested: bool = False) -> list[Tag]:
     :param nested: Whether the block is in a \t tag.
     :return: A list of Tag objects.
     """
+
+    def split_args(args_str: str) -> list[str]:
+        backslash_pos = args_str.find("\\")
+
+        if backslash_pos == -1:
+            return list(filter(lambda x: x.strip(), args_str.split(",")))
+
+        first_part = args_str[:backslash_pos]
+        result = list(filter(lambda x: x.strip(), first_part.split(",")))
+        result.append(args_str[backslash_pos:])
+
+        return result
+
     if not block:
         return []
 
     result = []
-    tag_pattern = re.compile(r'\\([^(\\]+)(?:\(([^)]*)\))?')
+    tag_pattern = re.compile(r"\\([^(\\]+)(?:\(([^)]*)\)?)?")
 
     pos = 0
 
     while pos < len(block):
-        next_tag = block.find('\\', pos)
+        next_tag = block.find("\\", pos)
 
         if next_tag > pos:
             comment = block[pos:next_tag]
@@ -430,7 +443,7 @@ def split_tags(block: str, nested: bool = False) -> list[Tag]:
         args = []
 
         if args_str:
-            args = [arg.strip() for arg in args_str.split(',')]
+            args = split_args(args_str)
 
         for tag in tag_args:
             if name.startswith(tag):
@@ -440,7 +453,7 @@ def split_tags(block: str, nested: bool = False) -> list[Tag]:
                 break
 
         if name not in tag_args and not args:
-            match_simple = re.match(r'([0-9]*[a-z]+)(.*)', name)
+            match_simple = re.match(r"([0-9]*[a-z]+)(.*)", name)
             if match_simple:
                 tag_name, remaining = match_simple.groups()
                 if remaining:
