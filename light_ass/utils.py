@@ -118,3 +118,7 @@ def parse_ass_alpha(s: str):
         return AssAlpha(0)
     val = int(num_str, 16) & 0xFF
     return AssAlpha(val)
+
+
+def format_number(x):
+    return str(int(x)) if x == int(x) else str(x)

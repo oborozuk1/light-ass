@@ -3,7 +3,7 @@ from typing import Self, Iterable
 
 from .ass_types import AssColor
 from .constants import DEFAULT_STYLES_FORMAT
-from .utils import to_snake_case
+from .utils import to_snake_case, format_number
 
 __all__ = [
     "Style",
@@ -99,17 +99,17 @@ class Style:
         return cls(**kwargs)
 
     def to_string(self) -> str:
-        fontsize = int(self.fontsize) if self.fontsize.is_integer() else self.fontsize
+        fontsize = format_number(round(self.fontsize, 2))
         bold = -1 if self.bold else 0
         italic = -1 if self.italic else 0
         underline = -1 if self.underline else 0
         strike_out = -1 if self.strike_out else 0
-        scale_x = int(self.scale_x) if self.scale_x.is_integer() else self.scale_x
-        scale_y = int(self.scale_y) if self.scale_y.is_integer() else self.scale_y
-        angle = int(self.angle) if self.angle.is_integer() else self.angle
-        spacing = int(self.spacing) if self.spacing.is_integer() else self.spacing
-        outline = int(self.outline) if self.outline.is_integer() else self.outline
-        shadow = int(self.shadow) if self.shadow.is_integer() else self.shadow
+        scale_x = format_number(round(self.scale_x, 2))
+        scale_y = format_number(round(self.scale_y, 2))
+        angle = format_number(round(self.angle, 2))
+        spacing = format_number(round(self.spacing, 2))
+        outline = format_number(round(self.outline, 2))
+        shadow = format_number(round(self.shadow, 2))
         return (f"Style: {self.name},{self.fontname},{fontsize},{self.primary_colour},{self.secondary_colour},"
                 f"{self.outline_colour},{self.back_colour},{bold},{italic},{underline},{strike_out},{scale_x},{scale_y},"
                 f"{spacing},{angle},{self.border_style},{outline},{shadow},{self.alignment},"
