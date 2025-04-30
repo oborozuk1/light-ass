@@ -154,6 +154,71 @@ class Subtitle:
             if flag:
                 event.text = join_tags(tags)
 
+    def resample(self, target_x: int, target_y: int) -> None:
+        """
+        Resample the subtitle to the target resolution.
+        :param target_x: The target width.
+        :param target_y: The target height.
+        :return: None
+        """
+        origin_x = self.info["PlayResX"]
+        origin_y = self.info["PlayResY"]
+
+        self.info["PlayResX"] = target_x
+        self.info["PlayResY"] = target_y
+
+        scale_x = target_x / origin_x
+        scale_y = target_y / origin_y
+
+        for style in self.styles.values():
+            style.fontsize = round(style.fontsize * scale_x, 2)
+            style.scale_y = round(style.scale_y * scale_y / scale_x, 2)
+            style.spacing = round(style.spacing * scale_x, 2)
+            style.outline = round(style.outline * scale_x, 2)
+            style.shadow = round(style.shadow * scale_x, 2)
+            style.margin_l = int(style.margin_l * scale_x)
+            style.margin_r = int(style.margin_r * scale_x)
+            style.margin_v = int(style.margin_v * scale_y)
+
+        for event in self.events:
+            event.margin_l = int(event.margin_l * scale_x)
+            event.margin_r = int(event.margin_r * scale_x)
+            event.margin_v = int(event.margin_v * scale_y)
+
+            tags = event.parse_tags()
+            for tag in tags:
+                if not tag.valid:
+                    continue
+
+                if tag.name == "pos":
+                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y)
+                elif tag.name == "org":
+                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y)
+                elif tag.name == "move":
+                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y, tag.args[2] * scale_x, tag.args[3] * scale_y)
+                elif tag.name == "clip" or tag.name == "iclip":
+                    if len(tag.args) == 4:
+                        tag.args = (int(tag.args[0] * scale_x), int(tag.args[1] * scale_y),
+                                    int(tag.args[2] * scale_x), int(tag.args[3] * scale_y))
+                    else:
+                        tag.args[0].scale(scale_x * 100, scale_y * 100).round(3)
+                elif tag.name == "fs" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_x, 3),)
+                elif tag.name == "bord" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_x, 3),)
+                elif tag.name == "xbord" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_x, 3),)
+                elif tag.name == "ybord" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_y, 3),)
+                elif tag.name == "shad" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_x, 3),)
+                elif tag.name == "xshad" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_x, 3),)
+                elif tag.name == "yshad" and tag.args and isinstance(tag.args[0], (float, int)):
+                    tag.args = (round(tag.args[0] * scale_y, 3),)
+
+            event.text = join_tags(tags)
+
     def to_string(self) -> str:
         """
         Convert the Subtitle object to an ASS formatted string.
