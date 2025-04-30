@@ -5,7 +5,7 @@ INT32_MIN = -2_147_483_648
 INT32_MAX = 2_147_483_647
 
 
-def clamp(val: int, min_: int, max_: int) -> int:
+def clamp(val, min_, max_):
     return min(max(val, min_), max_)
 
 
