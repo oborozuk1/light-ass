@@ -190,12 +190,16 @@ class Subtitle:
                 if not tag.valid:
                     continue
 
-                if tag.name == "pos":
-                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y)
-                elif tag.name == "org":
-                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y)
+                if tag.name == "pos" or tag.name == "org":
+                    tag.args = (round(tag.args[0] * scale_x, 3), round(tag.args[1] * scale_y, 2))
                 elif tag.name == "move":
-                    tag.args = (tag.args[0] * scale_x, tag.args[1] * scale_y, tag.args[2] * scale_x, tag.args[3] * scale_y)
+                    if len(tag.args) == 4:
+                       tag.args = (round(tag.args[0] * scale_x, 3), round(tag.args[1] * scale_y, 3),
+                                   round(tag.args[2] * scale_x, 3), round(tag.args[3] * scale_y, 3))
+                    elif len(tag.args) == 6:
+                       tag.args = (round(tag.args[0] * scale_x, 3), round(tag.args[1] * scale_y, 3),
+                                   round(tag.args[2] * scale_x, 3), round(tag.args[3] * scale_y, 3),
+                                   tag.args[4], tag.args[5])
                 elif tag.name == "clip" or tag.name == "iclip":
                     if len(tag.args) == 4:
                         tag.args = (int(tag.args[0] * scale_x), int(tag.args[1] * scale_y),
