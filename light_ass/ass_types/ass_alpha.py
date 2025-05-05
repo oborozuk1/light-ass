@@ -20,7 +20,7 @@ class AssAlpha:
         from ..utils import clamp
 
         val = clamp(self.value, 0, 255)
-        return f"{val:02x}"
+        return f"{val:02X}"
 
     @staticmethod
     def parse(s: str | int) -> int:
