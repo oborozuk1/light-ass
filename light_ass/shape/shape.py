@@ -97,7 +97,8 @@ class Shape:
             shapes.append(f"m {format_number(contour[0].x)} {format_number(contour[0].y)} " + " ".join(shape))
         return "".join(shapes)
 
-    to_string = export_shape
+    def __str__(self):
+        return self.export_shape()
 
     def copy(self):
         return Shape(self)
