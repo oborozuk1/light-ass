@@ -114,6 +114,8 @@ def format_arg(arg) -> str:
             arg = arg.format()
         case AssColor():
             arg = arg.format("&H{B}{G}{R}&")
+        case AssDrawing():
+            arg = arg.to_string()
         case _:
             arg = str(arg).strip()
     return arg
