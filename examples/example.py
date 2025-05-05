@@ -1,10 +1,4 @@
-from light_ass import tag_parser, Subtitle
-
-
-tags = tag_parser.parse_tags(r"{\\\fs50\clip(1,,,3,2,4)\t(\fs55} Hello \{This is not a comment}{\5c(for real?)}{nah}")
-print(tags[-2].name, tags[-2].args, tags[-2].valid)
-print(tag_parser.join_tags(tags))
-print()
+from light_ass import *
 
 ass_text = r"""
 [Script Info]
@@ -28,16 +22,8 @@ data here
 doc = Subtitle.from_string(ass_text, drop_unknown_sections=False)
 
 print(doc.styles["OPJP"].color1)  # &H003493EF
-doc.styles["OPJP"].color1 = "FF3493EF"
-print(doc.styles["OPJP"].color1)  # &HFF3493EF
-try:
-    doc.styles["OPJP"].color1 = "no way"
-except ValueError:
-    print("NO WAY!")
-
 
 parsed = doc.events[0].parse_tags()
-print()
 print(parsed)
 print(tag_parser.join_tags(parsed, skip_comment=True))
 
@@ -45,4 +31,5 @@ print(tag_parser.join_tags(parsed, skip_comment=True))
 
 text = r"{\move(2,3,4,5)\t(1,2,\fs50)}"
 parsed = tag_parser.parse_tags(text)
-print(parsed[1].valid)
+print(parsed[1])
+print(parsed[1].is_line_tag)
