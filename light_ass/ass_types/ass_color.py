@@ -1,6 +1,10 @@
 from itertools import takewhile
 from typing import overload, Self
 
+__all__ = [
+    "AssColor",
+]
+
 
 class AssColor:
     @overload

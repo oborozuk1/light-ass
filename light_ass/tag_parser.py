@@ -1,5 +1,4 @@
 import re
-from itertools import takewhile, dropwhile
 from typing import Sequence, Any
 
 from .ass_types import AssColor, AssAlpha, AssDrawing

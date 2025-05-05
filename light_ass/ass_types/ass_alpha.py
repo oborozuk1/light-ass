@@ -1,6 +1,10 @@
 from itertools import takewhile
 from typing import Self
 
+__all__ = [
+    "AssAlpha",
+]
+
 
 class AssAlpha:
     def __init__(self, val: str | int | Self):
