@@ -1,9 +1,10 @@
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
-from typing import Self, Iterable
+from typing import Any, ClassVar, Self
 
-from .ass_types import AssColor
-from .constants import DEFAULT_STYLES_FORMAT
-from .utils import to_snake_case, format_number
+from .constants import DEFAULT_STYLE_FORMAT
+from .types import AssAlpha, AssColor
+from .utils import Formatter, HeaderTypeParser
 
 __all__ = [
     "Style",
@@ -11,15 +12,41 @@ __all__ = [
 ]
 
 
-@dataclass(kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class Style:
+    _FIELD_PARSER: ClassVar[dict[str, tuple[str, Callable[[str], Any]]]] = {
+        "name": ("name", HeaderTypeParser.parse_starred_str),
+        "fontname": ("fontname", HeaderTypeParser.parse_str),
+        "fontsize": ("fontsize", HeaderTypeParser.parse_float),
+        "bold": ("bold", HeaderTypeParser.parse_bool),
+        "italic": ("italic", HeaderTypeParser.parse_bool),
+        "underline": ("underline", HeaderTypeParser.parse_bool),
+        "strikeout": ("strike_out", HeaderTypeParser.parse_bool),
+        "scalex": ("scale_x", HeaderTypeParser.parse_float),
+        "scaley": ("scale_y", HeaderTypeParser.parse_float),
+        "spacing": ("spacing", HeaderTypeParser.parse_float),
+        "angle": ("angle", HeaderTypeParser.parse_float),
+        "borderstyle": ("border_style", HeaderTypeParser.parse_int),
+        "outline": ("outline", HeaderTypeParser.parse_float),
+        "shadow": ("shadow", HeaderTypeParser.parse_float),
+        "alignment": ("alignment", HeaderTypeParser.parse_int),
+        "marginl": ("margin_l", HeaderTypeParser.parse_int),
+        "marginr": ("margin_r", HeaderTypeParser.parse_int),
+        "marginv": ("margin_v", HeaderTypeParser.parse_int),
+        "encoding": ("encoding", HeaderTypeParser.parse_int),
+    }
+
     name: str
     fontname: str = "Arial"
     fontsize: float | int = 48.0
     primary_colour: AssColor = field(default_factory=lambda: AssColor(255, 255, 255))
+    primary_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
     secondary_colour: AssColor = field(default_factory=lambda: AssColor(255, 0, 0))
+    secondary_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
     outline_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    outline_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
     back_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    back_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
     bold: bool = False
     italic: bool = False
     underline: bool = False
@@ -46,12 +73,28 @@ class Style:
         self.primary_colour = value
 
     @property
+    def alpha1(self) -> AssAlpha:
+        return self.primary_alpha
+
+    @alpha1.setter
+    def alpha1(self, value: AssAlpha) -> None:
+        self.primary_alpha = value
+
+    @property
     def color2(self) -> AssColor:
         return self.secondary_colour
 
     @color2.setter
     def color2(self, value: AssColor) -> None:
         self.secondary_colour = value
+
+    @property
+    def alpha2(self) -> AssAlpha:
+        return self.secondary_alpha
+
+    @alpha2.setter
+    def alpha2(self, value: AssAlpha) -> None:
+        self.secondary_alpha = value
 
     @property
     def color3(self) -> AssColor:
@@ -62,6 +105,14 @@ class Style:
         self.outline_colour = value
 
     @property
+    def alpha3(self) -> AssAlpha:
+        return self.outline_alpha
+
+    @alpha3.setter
+    def alpha3(self, value: AssAlpha) -> None:
+        self.outline_alpha = value
+
+    @property
     def color4(self) -> AssColor:
         return self.back_colour
 
@@ -70,88 +121,156 @@ class Style:
         self.back_colour = value
 
     @property
-    def align(self) -> int:
-        return self.alignment
+    def alpha4(self) -> AssAlpha:
+        return self.back_alpha
 
-    def __repr__(self) -> str:
-        return f"Style(name={self.name})"
+    @alpha4.setter
+    def alpha4(self, value: AssAlpha) -> None:
+        self.back_alpha = value
 
     @classmethod
-    def from_ass_line(cls, line: str, format_order: Iterable[str] | None = None):
+    def from_ass(cls, line: str, format_order: tuple[str, ...] | None = None) -> Self:
         if format_order is None:
-            format_order = DEFAULT_STYLES_FORMAT
+            format_order = DEFAULT_STYLE_FORMAT
 
-        length = sum(1 for _ in format_order)
+        args: dict[str, Any] = {}
+        _, _, line = line.partition(":")
+        fields = line.split(",", len(format_order) - 1)
 
-        kwargs = {}
-        fields = line.removeprefix("Style:").split(",", length - 1)
         for key, value in zip(format_order, fields):
-            key = to_snake_case(key)
-            value = value.strip()
-            if key in ("bold", "italic", "underline", "strike_out"):
-                value = value == "-1"
-            elif key in ("margin_l", "margin_r", "margin_v"):
-                value = int(value)
-            elif key in ("fontsize", "scale_x", "scale_y", "spacing", "angle", "outline", "shadow"):
-                value = float(value)
-            kwargs[key] = value
+            key = key.lower()
+            value = value.lstrip(" \t")
 
-        return cls(**kwargs)
+            if field_ := cls._FIELD_PARSER.get(key, None):
+                field_name, parser = field_
+                value = parser(value)
+                if field_name == "name" and not value:
+                    raise ValueError(f"Invalid style name: {value!r}")
+                args[field_name] = value
+                continue
 
-    def to_string(self) -> str:
-        fontsize = format_number(round(self.fontsize, 2))
-        bold = -1 if self.bold else 0
-        italic = -1 if self.italic else 0
-        underline = -1 if self.underline else 0
-        strike_out = -1 if self.strike_out else 0
-        scale_x = format_number(round(self.scale_x, 2))
-        scale_y = format_number(round(self.scale_y, 2))
-        angle = format_number(round(self.angle, 2))
-        spacing = format_number(round(self.spacing, 2))
-        outline = format_number(round(self.outline, 2))
-        shadow = format_number(round(self.shadow, 2))
-        return (f"Style: {self.name},{self.fontname},{fontsize},{self.primary_colour},{self.secondary_colour},"
-                f"{self.outline_colour},{self.back_colour},{bold},{italic},{underline},{strike_out},{scale_x},{scale_y},"
-                f"{spacing},{angle},{self.border_style},{outline},{shadow},{self.alignment},"
-                f"{self.margin_l},{self.margin_r},{self.margin_v},{self.encoding}")
+            # PrimaryColour, SecondaryColour, OutlineColour, BackColour
+            color, alpha = HeaderTypeParser.parse_color_with_alpha(value)
+            match key.lower():
+                case "primarycolour":
+                    args["primary_colour"] = color
+                    args["primary_alpha"] = alpha
+                case "secondarycolour":
+                    args["secondary_colour"] = color
+                    args["secondary_alpha"] = alpha
+                case "outlinecolour":
+                    args["outline_colour"] = color
+                    args["outline_alpha"] = alpha
+                case "backcolour":
+                    args["back_colour"] = color
+                    args["back_alpha"] = alpha
+                case _:
+                    raise ValueError(f"Unknown style field: {key!r}")
+
+        return cls(**args)
+
+    @staticmethod
+    def _format_alpha_color(color: AssColor, alpha: AssAlpha) -> str:
+        return f"&H{alpha.hex_value}{color.b:02X}{color.g:02X}{color.r:02X}"
+
+    def to_ass(self) -> str:
+        fontsize = Formatter.format_float(round(self.fontsize, 2))
+        bold = "-1" if self.bold else "0"
+        italic = "-1" if self.italic else "0"
+        underline = "-1" if self.underline else "0"
+        strike_out = "-1" if self.strike_out else "0"
+        scale_x = Formatter.format_float(round(self.scale_x, 2))
+        scale_y = Formatter.format_float(round(self.scale_y, 2))
+        angle = Formatter.format_float(round(self.angle, 2))
+        spacing = Formatter.format_float(round(self.spacing, 2))
+        outline = Formatter.format_float(round(self.outline, 2))
+        shadow = Formatter.format_float(round(self.shadow, 2))
+        c1 = self._format_alpha_color(self.primary_colour, self.primary_alpha)
+        c2 = self._format_alpha_color(self.secondary_colour, self.secondary_alpha)
+        c3 = self._format_alpha_color(self.outline_colour, self.outline_alpha)
+        c4 = self._format_alpha_color(self.back_colour, self.back_alpha)
+        return (
+            f"Style: {self.name},{self.fontname},{fontsize},{c1},{c2},{c3},{c4},"
+            f"{bold},{italic},{underline},{strike_out},{scale_x},{scale_y},"
+            f"{spacing},{angle},{self.border_style},{outline},{shadow},{self.alignment},"
+            f"{self.margin_l},{self.margin_r},{self.margin_v},{self.encoding}"
+        )
 
 
-class Styles(dict[str, Style]):
-    def __init__(self, from_: Self | dict[str, Style] | None = None):
-        if from_ is None:
-            super().__init__()
-        else:
-            super().__init__(from_)
+class Styles:
+    SECTION_NAME: ClassVar[str] = "V4+ Styles"
 
-    def __setitem__(self, key, value):
-        if isinstance(value, Style):
-            value._name = key
-            super().__setitem__(key, value)
-        else:
-            raise TypeError("value must be a Style")
+    def __init__(self, styles: Iterable[Style] | None = None) -> None:
+        self._items: dict[str, Style] = {}
+        if styles:
+            for style in styles:
+                self._items[style.name] = style
 
-    def __repr__(self):
-        return f"Styles({", ".join(self.keys())})"
+    def __getitem__(self, key: str) -> Style:
+        return self._items[key]
+
+    def __setitem__(self, key: str, value: Style) -> None:
+        value.name = key
+        self._items[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self._items[key]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._items)
+
+    def __bool__(self) -> bool:
+        return bool(self._items)
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._items
+
+    def __repr__(self) -> str:
+        return f"Styles({', '.join(self._items.keys())})"
+
+    def get(self, key: str, default: Style | None = None) -> Style | None:
+        return self._items.get(key, default)
+
+    def keys(self) -> Iterable[str]:
+        return self._items.keys()
+
+    def values(self) -> Iterable[Style]:
+        return self._items.values()
+
+    def items(self) -> Iterable[tuple[str, Style]]:
+        return self._items.items()
 
     def set(self, style: Style) -> None:
-        """
-        Add a style to the collection. If the style name is already in use, it will be replaced.
-        :param style: The style to add.
-        :return: None
-        """
         self[style.name] = style
 
     def rename(self, old_name: str, new_name: str) -> None:
-        """
-        Rename a style. Note that you should use Subtitle.rename_style if you want to rename a style in a Subtitle object.
-        :param old_name: The name of the style to rename.
-        :param new_name: The new name of the style.
-        :return: None
-        """
-        if old_name not in self:
+        if old_name not in self._items:
             raise KeyError(f"{old_name} does not exist")
-        if new_name in self:
+        if new_name in self._items:
             raise KeyError(f"{new_name} is already a style name")
-        style = self.pop(old_name)
+        style = self._items.pop(old_name)
         style.name = new_name
-        self[new_name] = style
+        self._items[new_name] = style
+
+    @classmethod
+    def from_ass(cls, text: str, strict: bool = False) -> Self:
+        style_list = []
+        style_format = None
+        for line in text.splitlines():
+            if line[:7].lower() == "format:":
+                if strict and style_format:
+                    raise ValueError("Style Format line already declared")
+                style_format = tuple(map(lambda s: s.strip(" \t").lower(), line[7:].split(",")))
+            elif strict and style_format is None:
+                raise ValueError("Event Format line not declared")
+            else:
+                style_list.append(Style.from_ass(line, style_format or DEFAULT_STYLE_FORMAT))
+        return cls(style_list)
+
+    def to_ass(self) -> str:
+        return f"Format: {', '.join(DEFAULT_STYLE_FORMAT)}\n" + "\n".join(
+            style.to_ass() for style in self._items.values()
+        )

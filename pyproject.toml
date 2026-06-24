@@ -1,13 +1,14 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "light-ass"
-version = "0.1.4"
+dynamic = ["version"]
 description = "A lightweight library for handling ASS subtitles"
 readme = "README.md"
 requires-python = ">=3.12"
+dependencies = []
 keywords = ["subtitle", "ass"]
 license = {text = "MIT License"}
 authors = [
@@ -27,6 +28,26 @@ Homepage = "https://github.com/oborozuk1/light-ass"
 Repository = "https://github.com/oborozuk1/light-ass.git"
 "Bug Tracker" = "https://github.com/oborozuk1/light-ass/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["light_ass*"]
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.8",
+    "ruff>=0.3",
+]
+
+[tool.hatch.version]
+path = "light_ass/__init__.py"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
