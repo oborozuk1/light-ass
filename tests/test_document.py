@@ -36,10 +36,6 @@ class TestDocumentInit:
         assert doc.info["Title"] == "Test"
         assert "Default" in doc.styles
 
-    def test_custom_section_parsers(self):
-        doc = Document(sections=[])
-        assert len(doc._section_order) == 0
-
 
 class TestDocumentFromString:
     def test_load_full(self):
@@ -242,7 +238,7 @@ class TestDocumentRepr:
 class TestDocumentSectionParsers:
     def test_custom_parser(self):
         class MySection:
-            section_name = "Mysection"
+            SECTION_NAME = "Mysection"
 
             def __init__(self):
                 self.data = {}
@@ -260,14 +256,13 @@ class TestDocumentSectionParsers:
 
         text = "[Mysection]\nKey: Value\n\n[Script Info]\nTitle: Test\n"
 
-        doc = Document(sections=[MySection])
-        doc._init_from_ass_text(text)
+        doc = Document.from_string(text, extra_sections=[MySection])
         assert "Mysection" in doc.section_results
         assert doc.section_results["Mysection"].data["Key"] == "Value"
 
     def test_custom_section_in_output(self):
         class MySection:
-            section_name = "Mysection"
+            SECTION_NAME = "Mysection"
 
             @classmethod
             def from_ass(cls, text, strict=False):
@@ -276,7 +271,8 @@ class TestDocumentSectionParsers:
             def to_ass(self):
                 return "Custom data"
 
-        doc = Document(sections=[MySection])
+        doc = Document()
+        doc.section_order = ["Mysection"]
         doc.section_results["Mysection"] = MySection()
         doc.info["Title"] = "Test"
 
