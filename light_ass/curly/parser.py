@@ -129,11 +129,13 @@ class TagParser:
         tag_set: Iterable[type[Tag]] | None = None,
         strict: bool = False,
         escape_brace: bool = True,
+        parse_escape_nodes: bool = False,
     ):
         if tag_set is None:
             tag_set = STANDARD_TAG_SET
         self.strict = strict
         self.escape_brace = escape_brace
+        self.parse_escape_nodes = parse_escape_nodes
         self.update_tag_set(tag_set)
         self._frozen = False
 
@@ -256,10 +258,12 @@ class TagParser:
         line: str,
         strict: bool | None = None,
         escape_brace: bool | None = None,
-        parse_escape_nodes: bool = False,
+        parse_escape_nodes: bool | None = None,
     ) -> ParsedLine:
         if escape_brace is None:
             escape_brace = self.escape_brace
+        if parse_escape_nodes is None:
+            parse_escape_nodes = self.parse_escape_nodes
 
         pattern = self._BLOCK_ESCAPED_PATTERN if escape_brace else self._BLOCK_PATTERN
         segments = pattern.split(line)
