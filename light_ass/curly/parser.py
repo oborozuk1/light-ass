@@ -165,6 +165,19 @@ class TagParser:
             parts.append("\\" + rest)
         return parts
 
+    @classmethod
+    def split_escape_nodes(cls, text: str) -> list[EscapeNode | TextNode]:
+        parts = cls._ESCAPE_PATTERN.split(text)
+        if len(parts) == 1:
+            return [TextNode(parts[0])]
+        result: list[EscapeNode | TextNode] = []
+        for i, part in enumerate(parts):
+            if i % 2 == 1:
+                result.append(EscapeNode.from_raw(part))
+            elif part:
+                result.append(TextNode(part))
+        return result
+
     def _build_registry(self) -> None:
         registry = {}
         for t in self._tag_set:
@@ -269,33 +282,25 @@ class TagParser:
             parse_escape_nodes = self.parse_escape_nodes
 
         pattern = self._BLOCK_ESCAPED_PATTERN if escape_brace else self._BLOCK_PATTERN
-        segments = pattern.split(line)
+        texts = pattern.split(line)
 
         parts: list[Segment] = []
         drawing_scale = 0
-        for idx, segment in enumerate(segments):
+        for idx, text in enumerate(texts):
             if idx % 2 == 1:
-                tags = self.parse_block(segment, strict=strict)
+                tags = self.parse_block(text, strict=strict)
                 parts.extend(tags)
                 for tag in tags:
                     if isinstance(tag, DrawingModeTag):
                         drawing_scale = tag.value if tag.value is not None and tag.value >= 0 else 0
                 continue
-            if not segment and idx == 0:
+            if not text and idx == 0:
                 continue
             if drawing_scale > 0:
-                parts.append(DrawingNode(AssShape.from_ass(segment)))
+                parts.append(DrawingNode(AssShape.from_ass(text)))
             elif parse_escape_nodes:
-                p = self._ESCAPE_PATTERN.split(segment)
-                if len(p) == 1:
-                    parts.append(TextNode(segment))
-                    continue
-                for i, text_part in enumerate(p):
-                    if i % 2 == 1:
-                        parts.append(EscapeNode.from_raw(text_part))
-                    elif text_part:
-                        parts.append(TextNode(text_part))
+                parts.extend(self.split_escape_nodes(text))
             else:
-                parts.append(TextNode(segment))
+                parts.append(TextNode(text))
 
         return ParsedLine(parts=parts)
