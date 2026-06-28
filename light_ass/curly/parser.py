@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
@@ -85,6 +85,9 @@ class ParsedLine:
 
     def __len__(self) -> int:
         return len(self.parts)
+
+    def __iter__(self) -> Iterator[Segment]:
+        return iter(self.parts)
 
     def get_text(self) -> str:
         result = []
