@@ -104,7 +104,9 @@ class ParsedLine:
             result.append("}")
         return "".join(result)
 
-    def get_plain_text(self) -> str:
+    def get_plain_text(self, keep_escape_nodes: bool = False) -> str:
+        if keep_escape_nodes:
+            return "".join(p.to_ass() for p in self.parts if isinstance(p, (TextNode, EscapeNode)))
         return "".join(p.text for p in self.parts if isinstance(p, TextNode))
 
     def get_tags(self) -> list[Tag]:
