@@ -25,6 +25,15 @@ class HeaderTypeParser:
             return False
 
     @staticmethod
+    def parse_int_bool(s: str) -> bool:
+        s = s.lstrip(" \t").lower()
+        try:
+            num = TypeParser.parse_int(s)
+            return num == -1
+        except ValueError:
+            return False
+
+    @staticmethod
     def _parse_int(s: str, base: int = 10) -> int:
         if base == 10:
             match = TypeParser.INT_STR_REGEX.match(s)
