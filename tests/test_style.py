@@ -151,7 +151,7 @@ class TestStyleFromAss:
             "MarginV",
             "Encoding",
         )
-        line = "Style: MyStyle,Times,72,&H000000FF,&H0000FF00,&H00FF0000,&H00000000,1,0,0,0,100,100,0,0,2,5,3,5,20,20,20,1"
+        line = "Style: MyStyle,Times,72,&H000000FF,&H0000FF00,&H00FF0000,&H00000000,-1,0,0,0,100,100,0,0,2,5,3,5,20,20,20,1"
         s = Style.from_ass(line, fmt)
         assert s.name == "MyStyle"
         assert s.fontname == "Times"
