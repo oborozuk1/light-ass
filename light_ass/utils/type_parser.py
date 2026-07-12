@@ -16,39 +16,51 @@ def clamp(val: VT, min_: VT, max_: VT) -> VT:
 
 
 class TypeParser:
-    FLOAT_STR_REGEX = re.compile(r"^\s*[+-]?\d*\.?\d*(?:[eE][+-]?\d+)?", flags=re.ASCII)
-    INT_STR_REGEX = re.compile(r"^\s*[+-]?\d*", flags=re.ASCII)
-    HEX_STR_REGEX = re.compile(r"^\s*[+-]?[\da-f]*", flags=re.ASCII)
+    FLOAT_STR_REGEX = re.compile(r"\s*[+-]?\d*\.?\d*(?:[eE][+-]?\d+)?", flags=re.ASCII)
+    INT_STR_REGEX = re.compile(r"\s*[+-]?\d*", flags=re.ASCII)
+    HEX_STR_REGEX = re.compile(r"\s*[+-]?[\da-f]*", flags=re.ASCII)
 
     @staticmethod
-    def parse_int(param: str) -> int:
-        match = TypeParser.INT_STR_REGEX.match(param)
+    def parse_int_with_pos(param: str, strict: bool = False, pos: int = 0) -> tuple[int, int]:
+        match = TypeParser.INT_STR_REGEX.match(param, pos)
         if not match or not match.group(0):
-            raise ValueError(f"Invalid integer value: {param!r}")
+            raise ValueError(f"Invalid integer value: {param[pos:]!r}")
         try:
-            return int(match.group(0))
-        except ValueError:
-            return 0
+            return int(match.group(0)), match.end(0)
+        except ValueError as e:
+            if strict:
+                raise e
+            return 0, len(param)
 
     @staticmethod
-    def parse_bool(param: str) -> bool:
+    def parse_int(param: str, strict: bool = False) -> int:
+        return TypeParser.parse_int_with_pos(param, strict)[0]
+
+    @staticmethod
+    def parse_bool(param: str, strict: bool = False) -> bool:
         param = param.lstrip(" \t")
         if not param:
             raise ValueError(f"Invalid boolean value: {param!r}")
-        val = TypeParser.parse_int(param)
+        val = TypeParser.parse_int(param, strict)
         if val == 0 or val == 1:
             return bool(val)
         raise ValueError(f"Invalid boolean value: {param!r}")
 
     @staticmethod
-    def parse_float(param: str) -> float:
-        match = TypeParser.FLOAT_STR_REGEX.match(param)
+    def parse_float_with_pos(param: str, strict: bool = False, pos: int = 0) -> tuple[float, int]:
+        match = TypeParser.FLOAT_STR_REGEX.match(param, pos)
         if not match or not match.group(0):
-            raise ValueError(f"Invalid float value: {param!r}")
+            raise ValueError(f"Invalid float value: {param[pos:]!r}")
         try:
-            return float(match.group(0))
-        except ValueError:
-            return 0.0
+            return float(match.group(0)), match.end(0)
+        except ValueError as e:
+            if strict:
+                raise e
+            return 0.0, len(param)
+
+    @staticmethod
+    def parse_float(param: str, strict: bool = False) -> float:
+        return TypeParser.parse_float_with_pos(param, strict)[0]
 
     @staticmethod
     def parse_str(param: str) -> str:
