@@ -32,7 +32,7 @@ class AssColor:
             return cls.from_hex(s)
         return cls.from_ass(s)
 
-    def format(self, template: str = "&H{B}{G}{R}") -> str:
+    def format(self, template: str = "&H{B}{G}{R}&") -> str:
         template = template.upper()
         return template.format(
             B="%02X" % self.b,
