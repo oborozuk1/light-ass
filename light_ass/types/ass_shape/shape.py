@@ -36,7 +36,7 @@ class AssShape:
         return cls([MoveCmd(Point(0, 0)), LineCmd(points), CloseCmd()])
 
     @classmethod
-    def regular_polygon(cls, n: int, radius: float = 100) -> AssShape:
+    def regular_polygon(cls, n: int, radius: float = 100, clockwise: bool = True) -> AssShape:
         if n < 3:
             raise ValueError("A regular polygon must have at least 3 sides.")
         points = []
@@ -45,7 +45,10 @@ class AssShape:
             x = radius + radius * math.cos(angle)
             y = radius + radius * math.sin(angle)
             points.append(Point(x, y))
-        cmds = [MoveCmd(points[0])] + [LineCmd([p]) for p in points[1:]]
+        if clockwise:
+            cmds = [MoveCmd(points[0]), LineCmd(points[1:])]
+        else:
+            cmds = [MoveCmd(points[0]), LineCmd(points[:0:-1])]
         return cls(cmds)
 
     @classmethod
