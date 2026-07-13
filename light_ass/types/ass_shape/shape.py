@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import re
 
 from .command import (
@@ -25,6 +26,56 @@ class AssShape:
         self._commands = commands if commands is not None else []
         self._raw = raw
         self.decimal = decimal
+
+    @classmethod
+    def rectangle(cls, width: float, height: float, clockwise: bool = True) -> AssShape:
+        if clockwise:
+            points = [Point(0, 0), Point(width, 0), Point(width, height), Point(0, height)]
+        else:
+            points = [Point(0, 0), Point(0, height), Point(width, height), Point(width, 0)]
+        return cls([MoveCmd(Point(0, 0)), LineCmd(points), CloseCmd()])
+
+    @classmethod
+    def regular_polygon(cls, n: int, radius: float = 100) -> AssShape:
+        if n < 3:
+            raise ValueError("A regular polygon must have at least 3 sides.")
+        points = []
+        for i in range(n):
+            angle = -math.pi / 2 + 2 * math.pi * i / n
+            x = radius + radius * math.cos(angle)
+            y = radius + radius * math.sin(angle)
+            points.append(Point(x, y))
+        cmds = [MoveCmd(points[0])] + [LineCmd([p]) for p in points[1:]]
+        return cls(cmds)
+
+    @classmethod
+    def circle(cls, radius: float, center: Point | None = None, clockwise: bool = True) -> AssShape:
+        magic = radius * 0.552284749831
+        if center is None:
+            center = Point(radius, radius)
+        cx, cy = center
+        r = radius
+        if clockwise:
+            commands = [
+                MoveCmd(Point(cx + r, cy)),
+                BezierCmd([
+                    Point(cx + r, cy + magic), Point(cx + magic, cy + r), Point(cx, cy + r),
+                    Point(cx - magic, cy + r), Point(cx - r, cy + magic), Point(cx - r, cy),
+                    Point(cx - r, cy - magic), Point(cx - magic, cy - r), Point(cx, cy - r),
+                    Point(cx + magic, cy - r), Point(cx + r, cy - magic), Point(cx + r, cy),
+                ]),
+            ]
+        else:
+            commands = [
+                MoveCmd(Point(cx + r, cy)),
+                BezierCmd([
+                    Point(cx + r, cy - magic), Point(cx + magic, cy - r), Point(cx, cy - r),
+                    Point(cx - magic, cy - r), Point(cx - r, cy - magic), Point(cx - r, cy),
+                    Point(cx - r, cy + magic), Point(cx - magic, cy + r), Point(cx, cy + r),
+                    Point(cx + magic, cy + r), Point(cx + r, cy + magic), Point(cx + r, cy),
+                ]),
+            ]
+        return cls(commands)
 
     def _parse(self) -> None:
         if self._parsed:
