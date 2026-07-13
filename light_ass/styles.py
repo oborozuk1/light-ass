@@ -39,13 +39,13 @@ class Style:
     name: str
     fontname: str = "Arial"
     fontsize: float | int = 48.0
-    primary_colour: AssColor = field(default_factory=lambda: AssColor(255, 255, 255))
+    primary_color: AssColor = field(default_factory=lambda: AssColor(255, 255, 255))
     primary_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
-    secondary_colour: AssColor = field(default_factory=lambda: AssColor(255, 0, 0))
+    secondary_color: AssColor = field(default_factory=lambda: AssColor(255, 0, 0))
     secondary_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
-    outline_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    outline_color: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
     outline_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
-    back_colour: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
+    back_color: AssColor = field(default_factory=lambda: AssColor(0, 0, 0))
     back_alpha: AssAlpha = field(default_factory=lambda: AssAlpha(0))
     bold: bool = False
     italic: bool = False
@@ -66,11 +66,11 @@ class Style:
 
     @property
     def color1(self) -> AssColor:
-        return self.primary_colour
+        return self.primary_color
 
     @color1.setter
     def color1(self, value: AssColor) -> None:
-        self.primary_colour = value
+        self.primary_color = value
 
     @property
     def alpha1(self) -> AssAlpha:
@@ -82,11 +82,11 @@ class Style:
 
     @property
     def color2(self) -> AssColor:
-        return self.secondary_colour
+        return self.secondary_color
 
     @color2.setter
     def color2(self, value: AssColor) -> None:
-        self.secondary_colour = value
+        self.secondary_color = value
 
     @property
     def alpha2(self) -> AssAlpha:
@@ -98,11 +98,11 @@ class Style:
 
     @property
     def color3(self) -> AssColor:
-        return self.outline_colour
+        return self.outline_color
 
     @color3.setter
     def color3(self, value: AssColor) -> None:
-        self.outline_colour = value
+        self.outline_color = value
 
     @property
     def alpha3(self) -> AssAlpha:
@@ -114,11 +114,11 @@ class Style:
 
     @property
     def color4(self) -> AssColor:
-        return self.back_colour
+        return self.back_color
 
     @color4.setter
     def color4(self, value: AssColor) -> None:
-        self.back_colour = value
+        self.back_color = value
 
     @property
     def alpha4(self) -> AssAlpha:
@@ -153,16 +153,16 @@ class Style:
             color, alpha = HeaderTypeParser.parse_color_with_alpha(value)
             match key.lower():
                 case "primarycolour":
-                    args["primary_colour"] = color
+                    args["primary_color"] = color
                     args["primary_alpha"] = alpha
                 case "secondarycolour":
-                    args["secondary_colour"] = color
+                    args["secondary_color"] = color
                     args["secondary_alpha"] = alpha
                 case "outlinecolour":
-                    args["outline_colour"] = color
+                    args["outline_color"] = color
                     args["outline_alpha"] = alpha
                 case "backcolour":
-                    args["back_colour"] = color
+                    args["back_color"] = color
                     args["back_alpha"] = alpha
                 case _:
                     raise ValueError(f"Unknown style field: {key!r}")
@@ -185,10 +185,10 @@ class Style:
         spacing = Formatter.format_float(round(self.spacing, 2))
         outline = Formatter.format_float(round(self.outline, 2))
         shadow = Formatter.format_float(round(self.shadow, 2))
-        c1 = self._format_alpha_color(self.primary_colour, self.primary_alpha)
-        c2 = self._format_alpha_color(self.secondary_colour, self.secondary_alpha)
-        c3 = self._format_alpha_color(self.outline_colour, self.outline_alpha)
-        c4 = self._format_alpha_color(self.back_colour, self.back_alpha)
+        c1 = self._format_alpha_color(self.primary_color, self.primary_alpha)
+        c2 = self._format_alpha_color(self.secondary_color, self.secondary_alpha)
+        c3 = self._format_alpha_color(self.outline_color, self.outline_alpha)
+        c4 = self._format_alpha_color(self.back_color, self.back_alpha)
         return (
             f"Style: {self.name},{self.fontname},{fontsize},{c1},{c2},{c3},{c4},"
             f"{bold},{italic},{underline},{strike_out},{scale_x},{scale_y},"

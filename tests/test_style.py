@@ -28,10 +28,10 @@ class TestStyleInit:
 
     def test_default_colors(self):
         s = Style(name="Test")
-        assert s.primary_colour == AssColor(255, 255, 255)
-        assert s.secondary_colour == AssColor(255, 0, 0)
-        assert s.outline_colour == AssColor(0, 0, 0)
-        assert s.back_colour == AssColor(0, 0, 0)
+        assert s.primary_color == AssColor(255, 255, 255)
+        assert s.secondary_color == AssColor(255, 0, 0)
+        assert s.outline_color == AssColor(0, 0, 0)
+        assert s.back_color == AssColor(0, 0, 0)
 
     def test_default_alphas(self):
         s = Style(name="Test")
@@ -46,13 +46,13 @@ class TestStyleColorProperties:
         s = Style(name="Test")
         c = AssColor(100, 150, 200)
         s.color1 = c
-        assert s.primary_colour == c
+        assert s.primary_color == c
         s.color2 = c
-        assert s.secondary_colour == c
+        assert s.secondary_color == c
         s.color3 = c
-        assert s.outline_colour == c
+        assert s.outline_color == c
         s.color4 = c
-        assert s.back_colour == c
+        assert s.back_color == c
 
     def test_alpha_properties(self):
         s = Style(name="Test")
@@ -68,19 +68,19 @@ class TestStyleColorProperties:
 
     def test_color1_get(self):
         s = Style(name="Test")
-        assert s.color1 == s.primary_colour
+        assert s.color1 == s.primary_color
 
     def test_color2_get(self):
         s = Style(name="Test")
-        assert s.color2 == s.secondary_colour
+        assert s.color2 == s.secondary_color
 
     def test_color3_get(self):
         s = Style(name="Test")
-        assert s.color3 == s.outline_colour
+        assert s.color3 == s.outline_color
 
     def test_color4_get(self):
         s = Style(name="Test")
-        assert s.color4 == s.back_colour
+        assert s.color4 == s.back_color
 
 
 class TestStyleFromAss:
@@ -90,13 +90,13 @@ class TestStyleFromAss:
         assert s.name == "Default"
         assert s.fontname == "Arial"
         assert s.fontsize == 48.0
-        assert s.primary_colour == AssColor(255, 255, 255)
+        assert s.primary_color == AssColor(255, 255, 255)
         assert s.primary_alpha == AssAlpha(0)
-        assert s.secondary_colour == AssColor(255, 0, 0)
+        assert s.secondary_color == AssColor(255, 0, 0)
         assert s.secondary_alpha == AssAlpha(0)
-        assert s.outline_colour == AssColor(0, 0, 0)
+        assert s.outline_color == AssColor(0, 0, 0)
         assert s.outline_alpha == AssAlpha(0)
-        assert s.back_colour == AssColor(0, 0, 0)
+        assert s.back_color == AssColor(0, 0, 0)
         assert s.back_alpha == AssAlpha(0)
         assert s.bold is False
         assert s.italic is False
@@ -112,7 +112,7 @@ class TestStyleFromAss:
     def test_with_alpha(self):
         line = "Style: Test,Arial,48,&H80FF0000,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,2,10,10,10,1"
         s = Style.from_ass(line)
-        assert s.primary_colour == AssColor(0, 0, 255)
+        assert s.primary_color == AssColor(0, 0, 255)
         assert s.primary_alpha == AssAlpha(0x80)
 
     def test_starred_name(self):
