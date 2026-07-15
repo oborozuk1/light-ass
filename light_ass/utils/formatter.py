@@ -6,7 +6,7 @@ from ..types import AssAlpha, AssColor
 
 
 class Formatter:
-    decimal = 10
+    decimal = 4
 
     @staticmethod
     def format_float(number: float, decimal: int | None = None) -> str:
