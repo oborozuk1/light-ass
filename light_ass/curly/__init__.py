@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from .parser import (
+from .parsed_line import (
+    CommentNode,
+    DrawingNode,
     EscapeNode,
     HardSpaceNode,
     InBraceNode,
@@ -9,8 +11,9 @@ from .parser import (
     ParsedLine,
     Segment,
     SoftNewlineNode,
-    TagParser,
+    TextNode,
 )
+from .parser import TagParser
 from .tags import RawTag, Tag
 
 DEFAULT_TAG_PARSER = TagParser()
@@ -18,6 +21,8 @@ DEFAULT_TAG_PARSER.freeze()
 
 __all__ = [
     "DEFAULT_TAG_PARSER",
+    "CommentNode",
+    "DrawingNode",
     "EscapeNode",
     "HardSpaceNode",
     "InBraceNode",
@@ -29,4 +34,5 @@ __all__ = [
     "SoftNewlineNode",
     "Tag",
     "TagParser",
+    "TextNode",
 ]

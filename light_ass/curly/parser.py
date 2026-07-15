@@ -1,119 +1,20 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
+from collections.abc import Iterable
 from typing import Any, ClassVar
 
 from ..types import AssShape
+from .parsed_line import (
+    CommentNode,
+    DrawingNode,
+    EscapeNode,
+    InBraceNode,
+    ParsedLine,
+    Segment,
+    TextNode,
+)
 from .tags import STANDARD_TAG_SET, DrawingModeTag, RawTag, SimpleTag, Tag
-
-
-@dataclass
-class CommentNode:
-    text: str
-
-    def to_ass(self) -> str:
-        return self.text
-
-    def __str__(self) -> str:
-        return self.text
-
-
-@dataclass
-class TextNode:
-    text: str
-
-    def to_ass(self) -> str:
-        return self.text
-
-    def __str__(self) -> str:
-        return self.text
-
-
-@dataclass
-class DrawingNode:
-    shape: AssShape
-
-    def to_ass(self) -> str:
-        return self.shape.to_ass()
-
-
-@dataclass
-class EscapeNode:
-    command: ClassVar[str]
-    amount: int = 1
-
-    @classmethod
-    def from_raw(cls, raw: str) -> EscapeNode:
-        parts = [p for p in raw.split("\\") if p]
-        if all(p == "N" for p in parts):
-            return NewlineNode(len(parts))
-        if all(p == "n" for p in parts):
-            return SoftNewlineNode(len(parts))
-        if all(p == "h" for p in parts):
-            return HardSpaceNode(len(parts))
-        raise ValueError(f"Unrecognized escape pattern: {raw!r}")
-
-    def to_ass(self) -> str:
-        return self.command * self.amount
-
-
-@dataclass
-class NewlineNode(EscapeNode):
-    command: ClassVar[str] = "\\N"
-
-
-@dataclass
-class SoftNewlineNode(EscapeNode):
-    command: ClassVar[str] = "\\n"
-
-
-@dataclass
-class HardSpaceNode(EscapeNode):
-    command: ClassVar[str] = "\\h"
-
-
-InBraceNode = RawTag | Tag | CommentNode
-OutBraceNode = TextNode | DrawingNode | EscapeNode
-Segment = InBraceNode | OutBraceNode
-
-
-@dataclass
-class ParsedLine:
-    parts: list[Segment]
-
-    def __len__(self) -> int:
-        return len(self.parts)
-
-    def __iter__(self) -> Iterator[Segment]:
-        return iter(self.parts)
-
-    def get_text(self) -> str:
-        result = []
-        in_brace = False
-        for part in self.parts:
-            if isinstance(part, InBraceNode) and not in_brace:
-                result.append("{")
-                in_brace = True
-            elif isinstance(part, OutBraceNode) and in_brace:
-                result.append("}")
-                in_brace = False
-            result.append(part.to_ass())
-        if in_brace:
-            result.append("}")
-        return "".join(result)
-
-    def get_plain_text(self, keep_escape_nodes: bool = False) -> str:
-        if keep_escape_nodes:
-            return "".join(p.to_ass() for p in self.parts if isinstance(p, (TextNode, EscapeNode)))
-        return "".join(p.text for p in self.parts if isinstance(p, TextNode))
-
-    def get_tags(self) -> list[Tag]:
-        return [p for p in self.parts if isinstance(p, Tag)]
-
-    def to_ass(self) -> str:
-        return self.get_text()
 
 
 class TagParser:
