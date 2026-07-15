@@ -41,7 +41,7 @@ class TestFormatDispatch:
 
     def test_ass_color(self):
         c = AssColor(255, 0, 0)
-        assert Formatter.format(c) == "&H0000FF"
+        assert Formatter.format(c) == "&H0000FF&"
 
     def test_ass_alpha(self):
         a = AssAlpha(0x80)

@@ -87,19 +87,19 @@ class TestAssColorParse:
 class TestAssColorFormat:
     def test_to_ass(self):
         c = AssColor(255, 0, 0)
-        assert c.to_ass() == "&H0000FF"
+        assert c.to_ass() == "&H0000FF&"
 
     def test_to_ass_green(self):
         c = AssColor(0, 255, 0)
-        assert c.to_ass() == "&H00FF00"
+        assert c.to_ass() == "&H00FF00&"
 
     def test_to_ass_blue(self):
         c = AssColor(0, 0, 255)
-        assert c.to_ass() == "&HFF0000"
+        assert c.to_ass() == "&HFF0000&"
 
     def test_str(self):
         c = AssColor(0, 255, 0)
-        assert str(c) == "&H00FF00"
+        assert str(c) == "&H00FF00&"
 
     def test_format_custom(self):
         c = AssColor(0xFF, 0xAB, 0x55)

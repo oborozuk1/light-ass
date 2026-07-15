@@ -1,6 +1,6 @@
 import pytest
 
-from light_ass.curly.parser import (
+from light_ass.curly import (
     CommentNode,
     HardSpaceNode,
     NewlineNode,
