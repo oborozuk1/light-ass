@@ -53,6 +53,10 @@ class PositionTag(ParensTag):
     def get_params(self) -> tuple[float, float]:
         return self.x, self.y
 
+    @property
+    def point(self) -> Point:
+        return Point(self.x, self.y)
+
 
 @dataclass
 class MoveTag(ParensTag):
@@ -92,6 +96,14 @@ class MoveTag(ParensTag):
             return self.x1, self.y1, self.x2, self.y2
         return self.x1, self.y1, self.x2, self.y2, self.t1, self.t2
 
+    @property
+    def start(self) -> Point:
+        return Point(self.x1, self.y1)
+
+    @property
+    def end(self) -> Point:
+        return Point(self.x2, self.y2)
+
 
 @dataclass
 class ClipTag(ParensTag):
@@ -113,6 +125,14 @@ class ClipRectTag(ClipTag):
 
     def get_params(self) -> tuple[float, float, float, float]:
         return self.x1, self.y1, self.x2, self.y2
+
+    @property
+    def top_left(self) -> Point:
+        return Point(self.x1, self.y1)
+
+    @property
+    def bottom_right(self) -> Point:
+        return Point(self.x2, self.y2)
 
 
 @dataclass
@@ -147,6 +167,14 @@ class InverseClipRectTag(InverseClipTag):
 
     def get_params(self) -> tuple[float, float, float, float]:
         return self.x1, self.y1, self.x2, self.y2
+
+    @property
+    def top_left(self) -> Point:
+        return Point(self.x1, self.y1)
+
+    @property
+    def bottom_right(self) -> Point:
+        return Point(self.x2, self.y2)
 
 
 @dataclass
@@ -236,3 +264,7 @@ class OriginTag(ParensTag):
 
     def get_params(self) -> tuple[float, float]:
         return self.x, self.y
+
+    @property
+    def point(self) -> Point:
+        return Point(self.x, self.y)
