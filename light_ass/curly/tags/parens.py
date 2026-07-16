@@ -81,8 +81,8 @@ class PositionTag(ParensTag):
         y = TypeParser.parse_float(params[1])
         return cls(x, y, _raw=raw)
 
-    def get_params(self) -> tuple[float, float]:
-        return self.x, self.y
+    def get_params(self) -> dict[str, float]:
+        return {"x": self.x, "y": self.y}
 
     @property
     def point(self) -> Point:
@@ -133,12 +133,17 @@ class MoveTag(ParensTag):
         t2 = TypeParser.parse_int(raw.params[5])
         return cls(x1, y1, x2, y2, t1, t2, _raw=raw)
 
-    def get_params(
-        self,
-    ) -> tuple[float, float, float, float] | tuple[float, float, float, float, int, int]:
-        if self.t1 is None or self.t2 is None:
-            return self.x1, self.y1, self.x2, self.y2
-        return self.x1, self.y1, self.x2, self.y2, self.t1, self.t2
+    def get_params(self) -> dict[str, float | int]:
+        params: dict[str, float | int] = {
+            "x1": self.x1,
+            "y1": self.y1,
+            "x2": self.x2,
+            "y2": self.y2,
+        }
+        if self.t1 is not None and self.t2 is not None:
+            params["t1"] = self.t1
+            params["t2"] = self.t2
+        return params
 
     @property
     def start(self) -> Point:
@@ -180,8 +185,8 @@ class ClipRectTag(ClipTag):
         self.y2 = y2
         self._dirty = False
 
-    def get_params(self) -> tuple[float, float, float, float]:
-        return self.x1, self.y1, self.x2, self.y2
+    def get_params(self) -> dict[str, float]:
+        return {"x1": self.x1, "y1": self.y1, "x2": self.x2, "y2": self.y2}
 
     @property
     def top_left(self) -> Point:
@@ -206,8 +211,8 @@ class ClipShapeTag(ClipTag):
         self.scale = scale
         self._dirty = False
 
-    def get_params(self) -> tuple[int | None, AssShape]:
-        return self.scale, self.shape
+    def get_params(self) -> dict[str, AssShape | int | None]:
+        return {"scale": self.scale, "shape": self.shape}
 
     def _serialize(self) -> str:
         return f"\\clip({self.scale},{self.shape})"
@@ -244,8 +249,8 @@ class InverseClipRectTag(InverseClipTag):
         self.y2 = y2
         self._dirty = False
 
-    def get_params(self) -> tuple[float, float, float, float]:
-        return self.x1, self.y1, self.x2, self.y2
+    def get_params(self) -> dict[str, float]:
+        return {"x1": self.x1, "y1": self.y1, "x2": self.x2, "y2": self.y2}
 
     @property
     def top_left(self) -> Point:
@@ -270,8 +275,8 @@ class InverseClipShapeTag(InverseClipTag):
         self.scale = scale
         self._dirty = False
 
-    def get_params(self) -> tuple[int | None, AssShape]:
-        return self.scale, self.shape
+    def get_params(self) -> dict[str, AssShape | int | None]:
+        return {"scale": self.scale, "shape": self.shape}
 
     def _serialize(self) -> str:
         return f"\\iclip({self.scale},{self.shape})"
@@ -320,8 +325,8 @@ class FadeSimpleTag(FadeTag):
         self.fade_out = fade_out
         self._dirty = False
 
-    def get_params(self) -> tuple[int, int]:
-        return self.fade_in, self.fade_out
+    def get_params(self) -> dict[str, int]:
+        return {"fade_in": self.fade_in, "fade_out": self.fade_out}
 
 
 class FadeComplexTag(FadeTag):
@@ -348,11 +353,19 @@ class FadeComplexTag(FadeTag):
         self.t4 = t4
         self._dirty = False
 
-    def get_params(self) -> tuple[int, int, int, int, int, int, int]:
-        return self.a1, self.a2, self.a3, self.t1, self.t2, self.t3, self.t4
+    def get_params(self) -> dict[str, int]:
+        return {
+            "a1": self.a1,
+            "a2": self.a2,
+            "a3": self.a3,
+            "t1": self.t1,
+            "t2": self.t2,
+            "t3": self.t3,
+            "t4": self.t4,
+        }
 
     def _serialize(self) -> str:
-        params = ",".join(map(Formatter.format, self.get_params()))
+        params = ",".join(map(Formatter.format, self.get_params().values()))
         return f"\\fade({params})"
 
 
@@ -377,8 +390,8 @@ class OriginTag(ParensTag):
         y = TypeParser.parse_float(raw.params[1])
         return cls(x, y, _raw=raw)
 
-    def get_params(self) -> tuple[float, float]:
-        return self.x, self.y
+    def get_params(self) -> dict[str, float]:
+        return {"x": self.x, "y": self.y}
 
     @property
     def point(self) -> Point:

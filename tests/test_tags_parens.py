@@ -39,7 +39,7 @@ class TestPositionTag:
 
     def test_get_params(self):
         t = PositionTag(10, 20)
-        assert t.get_params() == (10, 20)
+        assert t.get_params() == {"x": 10, "y": 20}
 
 
 class TestMoveTag:
@@ -113,7 +113,7 @@ class TestClipTag:
 
     def test_rect_get_params(self):
         t = ClipRectTag(10, 20, 30, 40)
-        assert t.get_params() == (10, 20, 30, 40)
+        assert t.get_params() == {"x1": 10, "y1": 20, "x2": 30, "y2": 40}
 
 
 class TestInverseClipTag:

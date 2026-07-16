@@ -100,16 +100,13 @@ class Tag(ABC):
         object.__setattr__(self, name, value)
 
     def __repr__(self) -> str:
-        params = ", ".join(repr(p) for p in self.get_params())
+        params = ", ".join(f"{k}={v!r}" for k, v in self.get_params().items())
         return f"{type(self).__name__}({params})"
 
     def __eq__(self, other: object) -> bool:
         if type(self) is not type(other):
             return NotImplemented
         return self.get_params() == other.get_params()
-
-    def __hash__(self) -> int:
-        return hash((type(self), self.get_params()))
 
     def normalize(self) -> None:
         pass
@@ -124,7 +121,7 @@ class Tag(ABC):
         pass
 
     @abstractmethod
-    def get_params(self) -> tuple[object, ...]:
+    def get_params(self) -> dict[str, Any]:
         pass
 
     def to_ass(self) -> str:
@@ -168,8 +165,8 @@ class SimpleTag(Tag, ABC, Generic[VT]):
         except ValueError:
             return cls(None, _raw=raw)
 
-    def get_params(self) -> tuple[VT | None]:
-        return (self.value,)
+    def get_params(self) -> dict[str, VT | None]:
+        return {"value": self.value}
 
     def _serialize(self) -> str:
         if self.value is None:
@@ -188,5 +185,5 @@ class ParensTag(Tag, ABC):
             cls.effect_group = EffectGroup(cls.tag_name, FirstPolicy)
 
     def _serialize(self) -> str:
-        params = ",".join(Formatter.format(param) for param in self.get_params())
+        params = ",".join(Formatter.format(param) for param in self.get_params().values())
         return f"\\{self.tag_name}({params})"

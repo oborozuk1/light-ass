@@ -67,22 +67,15 @@ class TransformTag(ParensTag):
             )
         assert False, "Unreachable"
 
-    def get_params(
-        self,
-    ) -> (
-        tuple[OverrideBlock]
-        | tuple[float, OverrideBlock]
-        | tuple[int, int, OverrideBlock]
-        | tuple[int, int, float, OverrideBlock]
-    ):
-        params: list[OverrideBlock | int | float] = []
+    def get_params(self) -> dict[str, OverrideBlock | int | float]:
+        params: dict[str, OverrideBlock | int | float] = {}
         if self.t1 is not None and self.t2 is not None:
-            params.append(self.t1)
-            params.append(self.t2)
+            params["t1"] = self.t1
+            params["t2"] = self.t2
         if self.accel is not None:
-            params.append(self.accel)
-        params.append(self.modifier)
-        return tuple(params)  # type: ignore[return-value]
+            params["accel"] = self.accel
+        params["modifier"] = self.modifier
+        return params
 
     def to_ass(self) -> str:
         return self._serialize()

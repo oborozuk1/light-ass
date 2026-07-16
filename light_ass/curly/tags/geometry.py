@@ -38,8 +38,8 @@ class ScaleTag(SimpleTag[None]):
     def _parse_param(param: str) -> None:
         raise ValueError(f"{ScaleTag.__name__} does not accept parameters")
 
-    def get_params(self) -> tuple[None]:
-        return (None,)
+    def get_params(self) -> dict[str, None]:
+        return {"value": None}
 
     def _serialize(self) -> str:
         return "\\fsc"

@@ -31,8 +31,8 @@ class AlignmentTag(SimpleTag[Align]):
         else:
             self._value = value
 
-    def get_params(self) -> tuple[Align | None]:
-        return (self._value,)
+    def get_params(self) -> dict[str, Align | None]:
+        return {"value": self._value}
 
 
 class LegacyAlignmentTag(SimpleTag[Align]):
@@ -65,5 +65,5 @@ class LegacyAlignmentTag(SimpleTag[Align]):
         else:
             self._value = value
 
-    def get_params(self) -> tuple[Align | None]:
-        return (self._value,)
+    def get_params(self) -> dict[str, Align | None]:
+        return {"value": self._value}
