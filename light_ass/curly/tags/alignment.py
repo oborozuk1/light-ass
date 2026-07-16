@@ -55,7 +55,7 @@ class LegacyAlignmentTag(SimpleTag[Align]):
     def __init__(self, value: Align | int | None = None, _raw: RawTag | None = None) -> None:
         Tag.__init__(self, _raw=_raw)
         if isinstance(value, int):
-            value = Align(value)
+            value = Align.from_legacy(value)
         self._value = value
         self._dirty = False
 
