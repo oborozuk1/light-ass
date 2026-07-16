@@ -2,18 +2,75 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, ClassVar, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Self, TypeVar
 
 from ...utils import Formatter
 
 if TYPE_CHECKING:
     from ..parser import TagParser
 
-
 VT = TypeVar("VT")
 
 
-@dataclass(slots=True, frozen=True)
+class EffectPolicy:
+    @staticmethod
+    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
+        return {idx for _, idx in tags}
+
+    @staticmethod
+    def simplify_across_blocks(blocks: list[list[tuple[Tag, int]]]) -> set[tuple[int, int]]:
+        return {(p, idx) for p, block in enumerate(blocks) for _, idx in block}
+
+
+class FirstPolicy(EffectPolicy):
+    @staticmethod
+    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
+        for _, idx in tags:
+            return {idx}
+        return set()
+
+    @staticmethod
+    def simplify_across_blocks(blocks: list[list[tuple[Tag, int]]]) -> set[tuple[int, int]]:
+        for p, block in enumerate(blocks):
+            for _, idx in block:
+                return {(p, idx)}
+        return set()
+
+
+class LastPolicy(EffectPolicy):
+    @staticmethod
+    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
+        for _, idx in reversed(tags):
+            return {idx}
+        return set()
+
+    @staticmethod
+    def simplify_across_blocks(blocks: list[list[tuple[Tag, int]]]) -> set[tuple[int, int]]:
+        for p in range(len(blocks) - 1, -1, -1):
+            for _, idx in reversed(blocks[p]):
+                return {(p, idx)}
+        return set()
+
+
+class OverridePolicy(EffectPolicy):
+    @staticmethod
+    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
+        for _, idx in reversed(tags):
+            return {idx}
+        return set()
+
+
+class AccumulatePolicy(EffectPolicy):
+    pass
+
+
+@dataclass(slots=True, frozen=True, unsafe_hash=True)
+class EffectGroup:
+    name: str
+    policy: type[EffectPolicy] = OverridePolicy
+
+
+@dataclass(slots=True)
 class RawTag:
     name: str
     params: tuple[str, ...]
@@ -28,6 +85,7 @@ class RawTag:
 class Tag(ABC):
     tag_name: ClassVar[str]
     aliases: ClassVar[tuple[str, ...]] = tuple()
+    effect_group: ClassVar[EffectGroup]
     _raw: RawTag | None = field(kw_only=True, default=None, repr=False, compare=False)
     _dirty: bool = field(init=False, default=False, repr=False, compare=False)
 
@@ -37,6 +95,9 @@ class Tag(ABC):
     def __setattr__(self, name: str, value: VT) -> None:
         object.__setattr__(self, "_dirty", True)
         object.__setattr__(self, name, value)
+
+    def normalize(self) -> None:
+        pass
 
     @classmethod
     @abstractmethod
@@ -61,6 +122,12 @@ class Tag(ABC):
 @dataclass(slots=True)
 class SimpleTag(Tag, ABC, Generic[VT]):
     value: VT | None = None
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        if "effect_group" not in cls.__dict__ and not any(
+            "effect_group" in base.__dict__ for base in cls.mro()[1:]
+        ):
+            cls.effect_group = EffectGroup(cls.tag_name, OverridePolicy)
 
     @staticmethod
     @abstractmethod
@@ -91,6 +158,12 @@ class SimpleTag(Tag, ABC, Generic[VT]):
 
 @dataclass(slots=True)
 class ParensTag(Tag, ABC):
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        if "effect_group" not in cls.__dict__ and not any(
+            "effect_group" in base.__dict__ for base in cls.mro()[1:]
+        ):
+            cls.effect_group = EffectGroup(cls.tag_name, FirstPolicy)
+
     def _serialize(self) -> str:
         params = ",".join(Formatter.format(param) for param in self.get_params())
         return f"\\{self.tag_name}({params})"

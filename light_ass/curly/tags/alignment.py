@@ -1,49 +1,61 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
+from ...types.align import Align
 from ...utils import TypeParser
-from .base import SimpleTag
+from .base import EffectGroup, FirstPolicy, RawTag, SimpleTag
 
 
-def legacy2numpad(value: int) -> int:
-    if value < 1 or value > 11:
-        raise ValueError("Value must be between 1 and 11")
-    value = value if value & 3 else 5
-    if value > 8:
-        value -= 1
-    if value > 4:
-        value -= 1
-    return value
-
-
-def numpad2legacy(value: int) -> int:
-    if value < 1 or value > 9:
-        raise ValueError("Value must be between 1 and 9")
-    if value > 6:
-        value += 2
-    elif value > 3:
-        value += 1
-    return value
-
-
-@dataclass
-class AlignmentTag(SimpleTag[int]):
+class AlignmentTag(SimpleTag[Align]):
     tag_name = "an"
-    _parse_param = staticmethod(TypeParser.parse_int)
-    value: int | None
+    effect_group = EffectGroup("alignment", FirstPolicy)
+    _parse_param = staticmethod(TypeParser.parse_align)
+    _value: Align | None = None
 
-    @classmethod
-    def from_legacy(cls, value: int) -> AlignmentTag:
-        return AlignmentTag(legacy2numpad(value))
+    def __init__(self, value: Align | int | None = None, _raw: RawTag | None = None) -> None:
+        self._raw = _raw
+        if isinstance(value, int):
+            value = Align(value)
+        self._value = value
+        self._dirty = False
+
+    @property
+    def value(self) -> Align | None:
+        return self._value
+
+    @value.setter
+    def value(self, value: Align | int | None) -> None:
+        if isinstance(value, int):
+            self._value = Align(value)
+        else:
+            self._value = value
+
+    def __repr__(self) -> str:
+        return f"AlignmentTag(value={self._value})"
 
 
-@dataclass
-class LegacyAlignmentTag(SimpleTag[int]):
+class LegacyAlignmentTag(SimpleTag[Align]):
     tag_name = "a"
-    _parse_param = staticmethod(TypeParser.parse_int)
-    value: int | None
+    effect_group = EffectGroup("alignment", FirstPolicy)
+    _parse_param = staticmethod(TypeParser.parse_align)
+    _value: Align | None = None
 
-    @classmethod
-    def from_numpad(cls, value: int) -> AlignmentTag:
-        return AlignmentTag(numpad2legacy(value))
+    def __init__(self, value: Align | int | None = None, _raw: RawTag | None = None) -> None:
+        self._raw = _raw
+        if isinstance(value, int):
+            value = Align(value)
+        self._value = value
+        self._dirty = False
+
+    @property
+    def value(self) -> Align | None:
+        return self._value
+
+    @value.setter
+    def value(self, value: Align | int | None) -> None:
+        if isinstance(value, int):
+            self._value = Align.from_legacy(value)
+        else:
+            self._value = value
+
+    def __repr__(self) -> str:
+        return f"LegacyAlignmentTag(value={self._value})"

@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Self
 
 from .constants import DEFAULT_STYLE_FORMAT
 from .types import AssAlpha, AssColor
+from .types.align import Align
 from .utils import Formatter, HeaderTypeParser
 
 __all__ = [
@@ -29,7 +30,7 @@ class Style:
         "borderstyle": ("border_style", HeaderTypeParser.parse_int),
         "outline": ("outline", HeaderTypeParser.parse_float),
         "shadow": ("shadow", HeaderTypeParser.parse_float),
-        "alignment": ("alignment", HeaderTypeParser.parse_int),
+        "alignment": ("alignment", HeaderTypeParser.parse_align),
         "marginl": ("margin_l", HeaderTypeParser.parse_int),
         "marginr": ("margin_r", HeaderTypeParser.parse_int),
         "marginv": ("margin_v", HeaderTypeParser.parse_int),
@@ -58,7 +59,7 @@ class Style:
     border_style: int = 1
     outline: float | int = 2.0
     shadow: float | int = 2.0
-    alignment: int = 2
+    alignment: Align = Align.BOTTOM_CENTER
     margin_l: int = 10
     margin_r: int = 10
     margin_v: int = 10

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import TypeVar
 
-from ..types import AssAlpha, AssColor
+from ..types import Align, AssAlpha, AssColor
 
 INT32_MIN = -2_147_483_648
 INT32_MAX = 2_147_483_647
@@ -35,6 +35,10 @@ class TypeParser:
     @staticmethod
     def parse_int(param: str, strict: bool = False) -> int:
         return TypeParser.parse_int_with_pos(param, strict)[0]
+
+    @staticmethod
+    def parse_align(param: str, strict: bool = False) -> Align:
+        return Align(TypeParser.parse_int(param, strict))
 
     @staticmethod
     def parse_bool(param: str, strict: bool = False) -> bool:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ..constants import YCbCrMatrix
-from ..types import AssAlpha, AssColor, AssTime
+from ..types import Align, AssAlpha, AssColor, AssTime
 from .type_parser import TypeParser
 
 
@@ -58,6 +58,10 @@ class HeaderTypeParser:
             return HeaderTypeParser._parse_int(s, base)
         except ValueError:
             return 0
+
+    @staticmethod
+    def parse_align(s: str) -> Align:
+        return Align(TypeParser.parse_int(s))
 
     @staticmethod
     def parse_float(s: str) -> float:
