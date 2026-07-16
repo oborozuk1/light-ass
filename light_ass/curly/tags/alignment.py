@@ -1,13 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
-
 from ...types.align import Align
 from ...utils import TypeParser
 from .base import EffectGroup, FirstPolicy, RawTag, SimpleTag, Tag
-
-if TYPE_CHECKING:
-    from ..parser import TagParser
 
 
 class AlignmentTag(SimpleTag[Align]):
@@ -20,7 +15,7 @@ class AlignmentTag(SimpleTag[Align]):
 
     def __init__(self, value: Align | int | None = None, _raw: RawTag | None = None) -> None:
         Tag.__init__(self, _raw=_raw)
-        if isinstance(value, int):
+        if isinstance(value, int) and not isinstance(value, Align):
             value = Align(value)
         self._value = value
         self._dirty = False
@@ -31,7 +26,7 @@ class AlignmentTag(SimpleTag[Align]):
 
     @value.setter
     def value(self, value: Align | int | None) -> None:
-        if isinstance(value, int):
+        if isinstance(value, int) and not isinstance(value, Align):
             self._value = Align(value)
         else:
             self._value = value
@@ -54,7 +49,7 @@ class LegacyAlignmentTag(SimpleTag[Align]):
 
     def __init__(self, value: Align | int | None = None, _raw: RawTag | None = None) -> None:
         Tag.__init__(self, _raw=_raw)
-        if isinstance(value, int):
+        if isinstance(value, int) and not isinstance(value, Align):
             value = Align.from_legacy(value)
         self._value = value
         self._dirty = False
@@ -65,7 +60,7 @@ class LegacyAlignmentTag(SimpleTag[Align]):
 
     @value.setter
     def value(self, value: Align | int | None) -> None:
-        if isinstance(value, int):
+        if isinstance(value, int) and not isinstance(value, Align):
             self._value = Align.from_legacy(value)
         else:
             self._value = value

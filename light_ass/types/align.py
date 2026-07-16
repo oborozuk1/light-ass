@@ -8,9 +8,9 @@ def legacy2numpad(value: int) -> int:
         raise ValueError("Value must be between 1 and 11")
     value = value if value & 3 else 5
     if value > 8:
-        value -= 1
+        return value - 5
     if value > 4:
-        value -= 1
+        return value + 2
     return value
 
 
@@ -18,9 +18,9 @@ def numpad2legacy(value: int) -> int:
     if value < 1 or value > 9:
         raise ValueError("Value must be between 1 and 9")
     if value > 6:
-        value += 2
-    elif value > 3:
-        value += 1
+        return value - 2
+    if value > 3:
+        return value + 5
     return value
 
 
