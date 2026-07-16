@@ -12,12 +12,20 @@ class ScaleXTag(SimpleTag[float]):
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
 
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
+
 
 @dataclass
 class ScaleYTag(SimpleTag[float]):
     tag_name = "fscy"
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
+
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
 
 
 @dataclass
@@ -73,6 +81,10 @@ class DrawingModeTag(SimpleTag[int]):
     tag_name = "p"
     _parse_param = staticmethod(TypeParser.parse_int)
     value: int | None
+
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0, self.value)
 
 
 @dataclass

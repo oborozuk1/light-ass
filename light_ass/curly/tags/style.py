@@ -16,12 +16,20 @@ class BorderTag(SimpleTag[float]):
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
 
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
+
 
 @dataclass
 class BorderXTag(SimpleTag[float]):
     tag_name = "xbord"
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
+
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
 
 
 @dataclass
@@ -30,12 +38,20 @@ class BorderYTag(SimpleTag[float]):
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
 
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
+
 
 @dataclass
 class ShadowTag(SimpleTag[float]):
     tag_name = "shad"
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
+
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
 
 
 @dataclass
@@ -58,12 +74,20 @@ class BlurEdgeTag(SimpleTag[float]):
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
 
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
+
 
 @dataclass
 class BlurTag(SimpleTag[float]):
     tag_name = "blur"
     _parse_param = staticmethod(TypeParser.parse_float)
     value: float | None
+
+    def normalize(self) -> None:
+        if self.value is not None:
+            self.value = max(0.0, self.value)
 
 
 @dataclass
@@ -94,7 +118,9 @@ class BoldSimpleTag(BoldTag, SimpleTag[bool]):
 
 @dataclass
 class BoldWeightTag(BoldTag, SimpleTag[int]):
-    pass
+    def normalize(self) -> None:
+        if self.value is not None and self.value < 100:
+            self.value = None
 
 
 @dataclass
@@ -123,6 +149,10 @@ class WrapStyleTag(SimpleTag[int]):
     tag_name = "q"
     _parse_param = staticmethod(TypeParser.parse_int)
     value: int | None
+
+    def normalize(self) -> None:
+        if self.value is not None and not 1 <= self.value <= 3:
+            self.value = None
 
 
 @dataclass
