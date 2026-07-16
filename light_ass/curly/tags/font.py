@@ -1,18 +1,18 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self
 
 from ...utils import TypeParser
-from .base import RawTag, SimpleTag, EffectGroup, AccumulatePolicy
+from .base import AccumulatePolicy, EffectGroup, RawTag, SimpleTag
 
 if TYPE_CHECKING:
     from ..parser import TagParser
 
 
-@dataclass
 class FontSizeTag(SimpleTag[float], ABC):
+    __slots__ = ()
+
     tag_name = "fs"
     _parse_param = staticmethod(TypeParser.parse_float)
 
@@ -33,30 +33,29 @@ class FontSizeTag(SimpleTag[float], ABC):
             tag_cls = FontSizeRelativeTag
 
         try:
-            return tag_cls(TypeParser.parse_float(param))
+            return tag_cls(TypeParser.parse_float(param), _raw=raw)
         except ValueError:
             return tag_cls(None, _raw=raw)
 
 
-@dataclass
 class FontSizeAbsoluteTag(FontSizeTag):
-    value: float | None
+    __slots__ = ()
 
     def normalize(self) -> None:
         if self.value is not None and self.value < 0:
             self.value = None
 
 
-@dataclass
 class FontSizeRelativeTag(FontSizeTag):
-    value: float | None
+    __slots__ = ()
+
     effect_group = EffectGroup("fontsize-relative", AccumulatePolicy)
 
 
-@dataclass
 class FontNameTag(SimpleTag[str]):
+    __slots__ = ()
+
     tag_name = "fn"
-    value: str | None
 
     @staticmethod
     def _parse_param(param: str) -> str:
@@ -86,15 +85,15 @@ class FontNameTag(SimpleTag[str]):
             self.value = self.value.strip(" \t")
 
 
-@dataclass
 class FontEncodingTag(SimpleTag[int]):
+    __slots__ = ()
+
     tag_name = "fe"
     _parse_param = staticmethod(TypeParser.parse_int)
-    value: int | None
 
 
-@dataclass
 class LetterSpacingTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "fsp"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None

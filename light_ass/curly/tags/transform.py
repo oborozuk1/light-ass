@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ...utils import TypeParser
@@ -11,14 +10,26 @@ if TYPE_CHECKING:
     from ..parser import TagParser
 
 
-@dataclass
 class TransformTag(ParensTag):
+    __slots__ = ("modifier", "t1", "t2", "accel")
+
     tag_name = "t"
     effect_group = EffectGroup("transform", AccumulatePolicy)
-    modifier: OverrideBlock
-    t1: int | None = None
-    t2: int | None = None
-    accel: float | None = None
+
+    def __init__(
+        self,
+        modifier: OverrideBlock,
+        t1: int | None = None,
+        t2: int | None = None,
+        accel: float | None = None,
+        _raw: RawTag | None = None,
+    ) -> None:
+        super().__init__(_raw=_raw)
+        self.modifier = modifier
+        self.t1 = t1
+        self.t2 = t2
+        self.accel = accel
+        self._dirty = False
 
     @classmethod
     def from_raw(

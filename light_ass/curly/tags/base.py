@@ -64,7 +64,7 @@ class AccumulatePolicy(EffectPolicy):
     pass
 
 
-@dataclass(slots=True, frozen=True, unsafe_hash=True)
+@dataclass(slots=True, frozen=True)
 class EffectGroup:
     name: str
     policy: type[EffectPolicy] = OverridePolicy
@@ -81,20 +81,35 @@ class RawTag:
         return self.raw_str
 
 
-@dataclass(slots=True)
 class Tag(ABC):
     tag_name: ClassVar[str]
-    aliases: ClassVar[tuple[str, ...]] = tuple()
+    aliases: ClassVar[tuple[str, ...]] = ()
     effect_group: ClassVar[EffectGroup]
-    _raw: RawTag | None = field(kw_only=True, default=None, repr=False, compare=False)
-    _dirty: bool = field(init=False, default=False, repr=False, compare=False)
 
-    def __post_init__(self) -> None:
+    __slots__ = ("_raw", "_dirty")
+
+    _raw: RawTag | None
+    _dirty: bool
+
+    def __init__(self, _raw: RawTag | None = None) -> None:
+        object.__setattr__(self, "_raw", _raw)
         self._dirty = False
 
-    def __setattr__(self, name: str, value: VT) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         object.__setattr__(self, "_dirty", True)
         object.__setattr__(self, name, value)
+
+    def __repr__(self) -> str:
+        params = ", ".join(repr(p) for p in self.get_params())
+        return f"{type(self).__name__}({params})"
+
+    def __eq__(self, other: object) -> bool:
+        if type(self) is not type(other):
+            return NotImplemented
+        return self.get_params() == other.get_params()
+
+    def __hash__(self) -> int:
+        return hash((type(self), self.get_params()))
 
     def normalize(self) -> None:
         pass
@@ -113,17 +128,23 @@ class Tag(ABC):
         pass
 
     def to_ass(self) -> str:
-        if self._raw and not self._dirty:
+        if self._raw is not None and not self._dirty:
             return self._raw.raw_str
-
         return self._serialize()
 
 
-@dataclass(slots=True)
 class SimpleTag(Tag, ABC, Generic[VT]):
-    value: VT | None = None
+    __slots__ = ("value",)
+
+    value: VT | None
+
+    def __init__(self, value: VT | None = None, _raw: RawTag | None = None) -> None:
+        super().__init__(_raw=_raw)
+        self.value = value
+        self._dirty = False
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
         if "effect_group" not in cls.__dict__ and not any(
             "effect_group" in base.__dict__ for base in cls.mro()[1:]
         ):
@@ -156,9 +177,11 @@ class SimpleTag(Tag, ABC, Generic[VT]):
         return f"\\{self.tag_name}{Formatter.format(self.value)}"
 
 
-@dataclass(slots=True)
 class ParensTag(Tag, ABC):
+    __slots__ = ()
+
     def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
         if "effect_group" not in cls.__dict__ and not any(
             "effect_group" in base.__dict__ for base in cls.mro()[1:]
         ):

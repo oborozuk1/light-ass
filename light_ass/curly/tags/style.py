@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ...utils import TypeParser
@@ -10,153 +9,154 @@ if TYPE_CHECKING:
     from ..parser import TagParser
 
 
-@dataclass
 class BorderTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "bord"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class BorderXTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "xbord"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class BorderYTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "ybord"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class ShadowTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "shad"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class ShadowXTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "xshad"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
 
-@dataclass
 class ShadowYTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "yshad"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
 
-@dataclass
 class BlurEdgeTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "be"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class BlurTag(SimpleTag[float]):
+    __slots__ = ()
+
     tag_name = "blur"
     _parse_param = staticmethod(TypeParser.parse_float)
-    value: float | None
 
     def normalize(self) -> None:
         if self.value is not None:
             self.value = max(0.0, self.value)
 
 
-@dataclass
 class BoldTag(SimpleTag[int]):
-    _parse_param = staticmethod(TypeParser.parse_int)
+    __slots__ = ()
+
     tag_name = "b"
+    _parse_param = staticmethod(TypeParser.parse_int)
 
     @classmethod
     def from_raw(
         cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None
     ) -> BoldSimpleTag | BoldWeightTag:
         if len(raw.params) == 0:
-            return BoldSimpleTag(None)
+            return BoldSimpleTag(None, _raw=raw)
 
         if len(raw.params) > 1 and strict:
             raise ValueError(f"{cls.__name__} expected 1 param, got {len(raw.params)}")
 
         value = cls._parse_param(raw.params[0])
         if value == 0 or value == 1:
-            return BoldSimpleTag(bool(value))
-        return BoldWeightTag(value)
+            return BoldSimpleTag(bool(value), _raw=raw)
+        return BoldWeightTag(value, _raw=raw)
 
 
-@dataclass
 class BoldSimpleTag(BoldTag, SimpleTag[bool]):
-    value: bool | None
+    __slots__ = ()
 
 
-@dataclass
 class BoldWeightTag(BoldTag, SimpleTag[int]):
+    __slots__ = ()
+
     def normalize(self) -> None:
         if self.value is not None and self.value < 100:
             self.value = None
 
 
-@dataclass
 class ItalicTag(SimpleTag[bool]):
+    __slots__ = ()
+
     tag_name = "i"
     _parse_param = staticmethod(TypeParser.parse_bool)
-    value: bool | None
 
 
-@dataclass
 class UnderlineTag(SimpleTag[bool]):
+    __slots__ = ()
+
     tag_name = "u"
     _parse_param = staticmethod(TypeParser.parse_bool)
-    value: bool | None
 
 
-@dataclass
 class StrikeoutTag(SimpleTag[bool]):
+    __slots__ = ()
+
     tag_name = "s"
     _parse_param = staticmethod(TypeParser.parse_bool)
-    value: bool | None
 
 
-@dataclass
 class WrapStyleTag(SimpleTag[int]):
+    __slots__ = ()
+
     tag_name = "q"
     _parse_param = staticmethod(TypeParser.parse_int)
-    value: int | None
 
     def normalize(self) -> None:
         if self.value is not None and not 1 <= self.value <= 3:
             self.value = None
 
 
-@dataclass
 class ResetStyleTag(SimpleTag[str]):
+    __slots__ = ()
+
     tag_name = "r"
     _parse_param = staticmethod(TypeParser.parse_str)
-    value: str | None
