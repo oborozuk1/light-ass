@@ -42,7 +42,7 @@ class TagParser:
         self.strict = strict
         self.escape_brace = escape_brace
         self.parse_escape_nodes = parse_escape_nodes
-        self.update_tag_set(tag_set)
+        self.tag_set = tag_set
         self._frozen = False
 
     def freeze(self) -> None:
@@ -56,7 +56,12 @@ class TagParser:
             raise AttributeError(f"Can't set attribute {name!r}")
         super().__setattr__(name, value)
 
-    def update_tag_set(self, tag_set: Iterable[type[Tag]]) -> None:
+    @property
+    def tag_set(self) -> frozenset[type[Tag]]:
+        return self._tag_set
+
+    @tag_set.setter
+    def tag_set(self, tag_set: Iterable[type[Tag]]) -> None:
         self._tag_set = frozenset(tag_set)
         self._build_registry()
 
@@ -105,8 +110,6 @@ class TagParser:
         return None
 
     def parse_block(self, block_str: str, strict: bool | None = None) -> list[InBraceNode]:
-        if not self._registry:
-            self._build_registry()
         if strict is None:
             strict = self.strict
 
