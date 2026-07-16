@@ -1,6 +1,6 @@
 import pytest
 
-from light_ass import AssTime, Dialog
+from light_ass import AssTime, Dialog, Document
 
 
 class TestDialogInit:
@@ -102,25 +102,6 @@ class TestDialogToAss:
         assert result.startswith("Dialogue: ")
 
 
-class TestDialogAliases:
-    def test_start_time(self):
-        d = Dialog(text="")
-        d.start_time = AssTime(5000)
-        assert d.start.time == 5000
-        assert d.start_time.time == 5000
-
-    def test_end_time(self):
-        d = Dialog(text="")
-        d.end_time = AssTime(10000)
-        assert d.end.time == 10000
-
-    def test_actor(self):
-        d = Dialog(text="")
-        d.actor = "John"
-        assert d.name == "John"
-        assert d.actor == "John"
-
-
 class TestDialogShift:
     def test_shift_forward(self):
         d = Dialog(text="", start=AssTime(1000), end=AssTime(2000))
@@ -152,10 +133,10 @@ class TestDialogTextStripped:
 class TestDialogParseTags:
     def test_parse_basic(self):
         d = Dialog(text="{\\b1}Bold{\\b0}")
-        parsed = d.parse_tags()
-        assert len(parsed) > 0
+        parsed = d.parse_tags(Document())
+        assert len(parsed.parsed) > 0
 
     def test_parse_plain_text(self):
         d = Dialog(text="Plain text")
-        parsed = d.parse_tags()
+        parsed = d.parse_tags(Document())
         assert parsed.get_plain_text() == "Plain text"

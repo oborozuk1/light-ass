@@ -72,22 +72,22 @@ class TestScriptInfoDictInterface:
 class TestScriptInfoSet:
     def test_set_with_type_parsing(self):
         info = ScriptInfo()
-        info.set("PlayResX", "1920")
+        info.set("PlayResX", "1920", parse=True)
         assert info["PlayResX"] == 1920
 
     def test_set_wrapstyle(self):
         info = ScriptInfo()
-        info.set("WrapStyle", "3")
+        info.set("WrapStyle", "3", parse=True)
         assert info["WrapStyle"] == 3
 
     def test_set_scaled_border(self):
         info = ScriptInfo()
-        info.set("ScaledBorderAndShadow", "yes")
+        info.set("ScaledBorderAndShadow", "yes", parse=True)
         assert info["ScaledBorderAndShadow"] is True
 
     def test_set_kerning(self):
         info = ScriptInfo()
-        info.set("Kerning", "yes")
+        info.set("Kerning", "yes", parse=True)
         assert info["Kerning"] is True
 
     def test_set_none_value_removes_key(self):

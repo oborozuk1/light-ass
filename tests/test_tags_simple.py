@@ -1,4 +1,3 @@
-
 from light_ass.curly.tags.alignment import AlignmentTag, LegacyAlignmentTag
 from light_ass.curly.tags.base import RawTag
 from light_ass.curly.tags.color import (

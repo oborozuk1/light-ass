@@ -4,6 +4,7 @@ from light_ass.curly import (
     CommentNode,
     HardSpaceNode,
     NewlineNode,
+    OverrideBlock,
     ParsedLine,
     SoftNewlineNode,
     TagParser,
@@ -21,32 +22,35 @@ from light_ass.types import AssColor
 
 class TestParsedLine:
     def test_get_text(self):
-        parts = [TextNode("Hello"), PositionTag(10, 20)]
-        pl = ParsedLine(parts=parts)
+        tag = PositionTag(10, 20)
+        parts = [TextNode("Hello"), OverrideBlock([tag])]
+        pl = ParsedLine(parts)
         text = pl.get_text()
         assert "Hello" in text
 
     def test_get_plain_text(self):
-        parts = [TextNode("Hello"), BoldSimpleTag(True)]
-        pl = ParsedLine(parts=parts)
+        tag = BoldSimpleTag(True)
+        parts = [TextNode("Hello"), OverrideBlock([tag])]
+        pl = ParsedLine(parts)
         assert pl.get_plain_text() == "Hello"
 
     def test_get_tags(self):
         tag = BoldSimpleTag(True)
-        parts = [TextNode("Hello"), tag]
-        pl = ParsedLine(parts=parts)
+        parts = [TextNode("Hello"), OverrideBlock([tag])]
+        pl = ParsedLine(parts)
         tags = pl.get_tags()
         assert tags == [tag]
 
     def test_to_ass(self):
         parts = [TextNode("Hello")]
-        pl = ParsedLine(parts=parts)
+        pl = ParsedLine(parts)
         result = pl.to_ass()
         assert "Hello" in result
 
     def test_len(self):
-        parts = [TextNode("A"), BoldSimpleTag(True)]
-        pl = ParsedLine(parts=parts)
+        tag = BoldSimpleTag(True)
+        parts = [TextNode("A"), OverrideBlock([tag])]
+        pl = ParsedLine(parts)
         assert len(pl) == 2
 
 

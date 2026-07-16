@@ -235,3 +235,81 @@ class TestTransformTag:
         assert t.t1 == 500
         assert t.t2 == 1000
         assert t.accel == 0.5
+
+
+class TestTransformTagSerialize:
+    def test_serialize_simple(self):
+        from light_ass.curly.parser import TagParser
+        from light_ass.curly.tags.base import RawTag
+        from light_ass.curly.tags.transform import TransformTag
+
+        parser = TagParser()
+        t = TransformTag.from_raw(
+            RawTag("t", (r"\fs48",), r"\t(\fs48)", TransformTag),
+            parser=parser,
+        )
+        assert t.to_ass() == r"\t(\fs48)"
+
+    def test_serialize_with_accel(self):
+        from light_ass.curly.parser import TagParser
+        from light_ass.curly.tags.base import RawTag
+        from light_ass.curly.tags.transform import TransformTag
+
+        parser = TagParser()
+        t = TransformTag.from_raw(
+            RawTag("t", ("0.5", r"\fs48"), r"\t(0.5,\fs48)", TransformTag),
+            parser=parser,
+        )
+        assert t.to_ass() == r"\t(0.5,\fs48)"
+
+    def test_serialize_with_time(self):
+        from light_ass.curly.parser import TagParser
+        from light_ass.curly.tags.base import RawTag
+        from light_ass.curly.tags.transform import TransformTag
+
+        parser = TagParser()
+        t = TransformTag.from_raw(
+            RawTag("t", ("500", "1000", r"\fs48"), r"\t(500,1000,\fs48)", TransformTag),
+            parser=parser,
+        )
+        assert t.to_ass() == r"\t(500,1000,\fs48)"
+
+    def test_serialize_with_time_and_accel(self):
+        from light_ass.curly.parser import TagParser
+        from light_ass.curly.tags.base import RawTag
+        from light_ass.curly.tags.transform import TransformTag
+
+        parser = TagParser()
+        t = TransformTag.from_raw(
+            RawTag("t", ("500", "1000", "0.5", r"\fs48"), r"\t(500,1000,0.5,\fs48)", TransformTag),
+            parser=parser,
+        )
+        assert t.to_ass() == r"\t(500,1000,0.5,\fs48)"
+
+    def test_serialize_multiple_modifier_tags(self):
+        from light_ass.curly.parser import TagParser
+        from light_ass.curly.tags.base import RawTag
+        from light_ass.curly.tags.transform import TransformTag
+
+        parser = TagParser()
+        t = TransformTag.from_raw(
+            RawTag("t", (r"\b1\fs48",), r"\t(\b1\fs48)", TransformTag),
+            parser=parser,
+        )
+        assert t.to_ass() == r"\t(\b1\fs48)"
+
+    def test_round_trip_parse_and_serialize(self):
+        from light_ass.curly.parser import TagParser
+
+        parser = TagParser()
+        original = r"{\t(\fs48)}"
+        pl = parser.parse(original)
+        assert pl.to_ass() == original
+
+    def test_round_trip_with_surrounding_text(self):
+        from light_ass.curly.parser import TagParser
+
+        parser = TagParser()
+        original = r"Hello{\b1\t(\fs100)}World"
+        pl = parser.parse(original)
+        assert pl.to_ass() == original
