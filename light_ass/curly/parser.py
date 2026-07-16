@@ -5,13 +5,14 @@ from collections.abc import Iterable
 from typing import Any, ClassVar
 
 from ..types import AssShape
+from .override_block import OverrideBlock
 from .parsed_line import (
+    BracedNode,
     CommentNode,
     DrawingNode,
     EscapeNode,
-    InBraceNode,
+    LinePart,
     ParsedLine,
-    Segment,
     TextNode,
 )
 from .tags import STANDARD_TAG_SET, DrawingModeTag, RawTag, SimpleTag, Tag
@@ -35,7 +36,7 @@ class TagParser:
         tag_set: Iterable[type[Tag]] | None = None,
         strict: bool = False,
         escape_brace: bool = True,
-        parse_escape_nodes: bool = False,
+        parse_escape_nodes: bool = True,
     ):
         if tag_set is None:
             tag_set = STANDARD_TAG_SET
@@ -109,7 +110,7 @@ class TagParser:
                 return name, self._registry[name]
         return None
 
-    def parse_block(self, block_str: str, strict: bool | None = None) -> list[InBraceNode]:
+    def parse_block(self, block_str: str, strict: bool | None = None) -> OverrideBlock:
         if strict is None:
             strict = self.strict
 
@@ -157,7 +158,7 @@ class TagParser:
         if prev_pos < length:
             raw_tags.append(CommentNode(block_str[prev_pos:]))
 
-        tags: list[InBraceNode] = []
+        tags: list[BracedNode] = []
         for raw_tag in raw_tags:
             if isinstance(raw_tag, CommentNode):
                 tags.append(raw_tag)
@@ -173,7 +174,7 @@ class TagParser:
                     raise e
                 tags.append(raw_tag)
 
-        return tags
+        return OverrideBlock(tags)
 
     def parse(
         self,
@@ -190,13 +191,13 @@ class TagParser:
         pattern = self._BLOCK_ESCAPED_PATTERN if escape_brace else self._BLOCK_PATTERN
         texts = pattern.split(line)
 
-        parts: list[Segment] = []
+        parts: list[LinePart] = []
         drawing_scale = 0
         for idx, text in enumerate(texts):
             if idx % 2 == 1:
-                tags = self.parse_block(text, strict=strict)
-                parts.extend(tags)
-                for tag in tags:
+                block = self.parse_block(text, strict=strict)
+                parts.append(block)
+                for tag in block:
                     if isinstance(tag, DrawingModeTag):
                         drawing_scale = tag.value if tag.value is not None and tag.value >= 0 else 0
                 continue

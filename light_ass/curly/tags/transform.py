@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ...utils import TypeParser
-from .base import ParensTag, RawTag
+from .base import AccumulatePolicy, EffectGroup, ParensTag, RawTag
 
 if TYPE_CHECKING:
-    from ..parser import InBraceNode, TagParser
+    from ..override_block import OverrideBlock
+    from ..parser import TagParser
 
 
 @dataclass
 class TransformTag(ParensTag):
     tag_name = "t"
-    modifier: list[InBraceNode] = field(default_factory=list)
+    effect_group = EffectGroup("transform", AccumulatePolicy)
+    modifier: OverrideBlock
     t1: int | None = None
     t2: int | None = None
     accel: float | None = None
@@ -28,7 +30,7 @@ class TransformTag(ParensTag):
 
         modifier = raw.params[-1]
         if parser is not None:
-            parsed_modifier: list[InBraceNode] = parser.parse_block(modifier, strict=strict)
+            parsed_modifier: OverrideBlock = parser.parse_block(modifier, strict=strict)
         else:
             raise ValueError("TagParser is required to parse the modifier of TransformTag")
 
@@ -57,12 +59,12 @@ class TransformTag(ParensTag):
     def get_params(
         self,
     ) -> (
-        tuple[list[InBraceNode]]
-        | tuple[float, list[InBraceNode]]
-        | tuple[int, int, list[InBraceNode]]
-        | tuple[int, int, float, list[InBraceNode]]
+        tuple[OverrideBlock]
+        | tuple[float, OverrideBlock]
+        | tuple[int, int, OverrideBlock]
+        | tuple[int, int, float, OverrideBlock]
     ):
-        params: list[list[InBraceNode] | int | float] = []
+        params: list[OverrideBlock | int | float] = []
         if self.t1 is not None and self.t2 is not None:
             params.append(self.t1)
             params.append(self.t2)

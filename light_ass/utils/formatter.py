@@ -20,6 +20,8 @@ class Formatter:
 
     @staticmethod
     def format(value: Any, decimal: int | None = None) -> str:
+        from ..curly import OverrideBlock
+
         match value:
             case float():
                 if decimal is None:
@@ -31,5 +33,7 @@ class Formatter:
                 return value.to_ass()
             case AssAlpha():
                 return value.to_ass()
+            case OverrideBlock():
+                return value.to_ass(False)
             case _:
                 return str(value)

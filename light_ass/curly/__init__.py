@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+from .override_block import OverrideBlock
 from .parsed_line import (
+    BareNode,
+    BracedNode,
     CommentNode,
     DrawingNode,
     EscapeNode,
     HardSpaceNode,
-    InBraceNode,
+    LinePart,
     NewlineNode,
-    OutBraceNode,
+    Node,
     ParsedLine,
-    Segment,
     SoftNewlineNode,
     TextNode,
 )
@@ -21,16 +23,18 @@ DEFAULT_TAG_PARSER.freeze()
 
 __all__ = [
     "DEFAULT_TAG_PARSER",
+    "BareNode",
+    "BracedNode",
     "CommentNode",
     "DrawingNode",
     "EscapeNode",
     "HardSpaceNode",
-    "InBraceNode",
     "NewlineNode",
-    "OutBraceNode",
+    "Node",
+    "OverrideBlock",
     "ParsedLine",
     "RawTag",
-    "Segment",
+    "LinePart",
     "SoftNewlineNode",
     "Tag",
     "TagParser",

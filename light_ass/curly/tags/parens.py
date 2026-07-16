@@ -4,11 +4,39 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
 from ...types.ass_shape import AssShape
+from ...types.point import Point
 from ...utils import Formatter, TypeParser
-from .base import ParensTag, RawTag
+from .base import EffectGroup, EffectPolicy, FirstPolicy, ParensTag, RawTag, Tag
 
 if TYPE_CHECKING:
     from ..parser import TagParser
+
+
+class ClipPolicy(EffectPolicy):
+    @staticmethod
+    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
+        result: list[int | None] = [None, None]
+        for tag, idx in tags:
+            if isinstance(tag, (ClipRectTag, InverseClipRectTag)):
+                if result[0] is None:
+                    result[0] = idx
+            elif isinstance(tag, (ClipShapeTag, InverseClipShapeTag)):
+                if result[1] is None:
+                    result[1] = idx
+        return set(v for v in result if v is not None)
+
+    @staticmethod
+    def simplify_across_blocks(blocks: list[list[tuple[Tag, int]]]) -> set[tuple[int, int]]:
+        result: list[tuple[int, int] | None] = [None, None]
+        for p, block in enumerate(blocks):
+            for tag, idx in block:
+                if isinstance(tag, (ClipRectTag, InverseClipRectTag)):
+                    if result[0] is None:
+                        result[0] = (p, idx)
+                elif isinstance(tag, (ClipShapeTag, InverseClipShapeTag)):
+                    if result[1] is None:
+                        result[1] = (p, idx)
+        return set(v for v in result if v is not None)
 
 
 def _parse_clip_params(
@@ -36,13 +64,12 @@ def _parse_clip_params(
 @dataclass
 class PositionTag(ParensTag):
     tag_name = "pos"
+    effect_group = EffectGroup("position", FirstPolicy)
     x: float
     y: float
 
     @classmethod
-    def from_raw(
-        cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None
-    ) -> Self:
+    def from_raw(cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None) -> Self:
         if len(raw.params) != 2:
             raise ValueError(f"{cls.__name__} expected 2 params, got {len(raw.params)}")
         params = raw.params
@@ -61,6 +88,7 @@ class PositionTag(ParensTag):
 @dataclass
 class MoveTag(ParensTag):
     tag_name = "move"
+    effect_group = EffectGroup("position", FirstPolicy)
     x1: float
     y1: float
     x2: float
@@ -69,9 +97,7 @@ class MoveTag(ParensTag):
     t2: int | None = None
 
     @classmethod
-    def from_raw(
-        cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None
-    ) -> Self:
+    def from_raw(cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None) -> Self:
         length = len(raw.params)
 
         if length not in (4, 6):
@@ -108,6 +134,7 @@ class MoveTag(ParensTag):
 @dataclass
 class ClipTag(ParensTag):
     tag_name = "clip"
+    effect_group = EffectGroup("clip", ClipPolicy)
 
     @classmethod
     def from_raw(
@@ -150,6 +177,7 @@ class ClipShapeTag(ClipTag):
 @dataclass
 class InverseClipTag(ParensTag):
     tag_name = "iclip"
+    effect_group = EffectGroup("clip", ClipPolicy)
 
     @classmethod
     def from_raw(
@@ -251,9 +279,7 @@ class OriginTag(ParensTag):
     y: float
 
     @classmethod
-    def from_raw(
-        cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None
-    ) -> Self:
+    def from_raw(cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None) -> Self:
         length = len(raw.params)
         if length != 2:
             raise ValueError(f"{cls.__name__} expected 2 params, got {length}")
