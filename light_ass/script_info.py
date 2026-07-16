@@ -60,10 +60,13 @@ class ScriptInfo:
             self._init_from_dict(info, messages)
 
     def __getitem__(self, key: ScriptInfoKeys | str) -> Any:
-        return self._items[key]
+        for k, value in self._items.items():
+            if key.upper() == k.upper():
+                return value
+        raise KeyError(key)
 
     def __setitem__(self, key: ScriptInfoKeys | str, value: Any) -> None:
-        self._items[key] = value
+        self.set(key, value)
 
     def __delitem__(self, key: ScriptInfoKeys | str) -> None:
         del self._items[key]
@@ -77,8 +80,8 @@ class ScriptInfo:
     def __bool__(self) -> bool:
         return bool(self._items)
 
-    def __contains__(self, key: object) -> bool:
-        return key in self._items
+    def __contains__(self, key: ScriptInfoKeys | str) -> bool:
+        return any(key.upper() == k.upper() for k in self._items)
 
     def __ior__(self, other: dict[str, Any]) -> Self:
         for key, value in other.items():
@@ -99,7 +102,10 @@ class ScriptInfo:
         return f"ScriptInfo({self._items!r})"
 
     def get(self, key: str, default: Any = None) -> Any:
-        return self._items.get(key, default)
+        for k, value in self._items.items():
+            if key.upper() == k.upper():
+                return value
+        return default
 
     def keys(self) -> list[str]:
         return list(self._items.keys())
@@ -110,18 +116,24 @@ class ScriptInfo:
     def items(self) -> list[tuple[str, Any]]:
         return list(self._items.items())
 
-    def set(self, key: ScriptInfoKeys | str, value: Any) -> None:
+    def set(self, key: ScriptInfoKeys | str, value: Any, parse: bool = False) -> None:
         if value is None:
             self._items.pop(key, None)
-        elif key.upper() in self._FIELD_PARSER and isinstance(value, str):
-            _, parser = self._FIELD_PARSER[key.upper()]
+            return
+        key_upper = key.upper()
+        for k in self._items:
+            if k.upper() == key_upper:
+                key = k
+                break
+        key, parser = self._FIELD_PARSER.get(key_upper, (key, None))
+        if  parse and isinstance(value, str) and parser is not None:
             self._items[key] = parser(value)
         else:
             self._items[key] = value
 
     @classmethod
     def from_ass(cls, text: str, strict: bool = False) -> Self:
-        info = {}
+        info: dict[str, Any] = {}
         messages = []
         for line in text.splitlines():
             if line.startswith(";"):
@@ -130,6 +142,9 @@ class ScriptInfo:
                 messages.append(line[2:].strip())
             else:
                 key, _, value = map(str.strip, line.partition(":"))
+                for existed_key in info.keys():
+                    if key.upper() == existed_key.upper() and strict:
+                        raise ValueError(f"Duplicate key: {key}")
                 info[key] = value
         return cls.from_dict(info, messages)
 
@@ -141,8 +156,8 @@ class ScriptInfo:
 
     def _init_from_dict(self, d: dict[str, Any], messages: list[str] | None = None) -> None:
         for key, value in d.items():
-            self.set(key, value)
-        self.messages = messages or []
+            self.set(key, value, True)
+        self.messages = messages if messages is not None else []
 
     def to_ass(self) -> str:
         parts = []

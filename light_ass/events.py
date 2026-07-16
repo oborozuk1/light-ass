@@ -10,7 +10,9 @@ from .types import AssTime
 from .utils import HeaderTypeParser
 
 if TYPE_CHECKING:
-    from .curly.parser import ParsedLine, TagParser
+    from .curly import TagParser
+    from .document import Document
+    from .parsed_event import ParsedDialog
 
 __all__ = [
     "Dialog",
@@ -46,28 +48,8 @@ class Dialog:
     effect: str = ""
 
     @property
-    def start_time(self) -> AssTime:
-        return self.start
-
-    @start_time.setter
-    def start_time(self, value: AssTime) -> None:
-        self.start = value
-
-    @property
-    def end_time(self) -> AssTime:
-        return self.end
-
-    @end_time.setter
-    def end_time(self, value: AssTime) -> None:
-        self.end = value
-
-    @property
-    def actor(self) -> str:
-        return self.name
-
-    @actor.setter
-    def actor(self, value: str) -> None:
-        self.name = value
+    def duration(self) -> AssTime:
+        return self.end - self.start
 
     @property
     def text_stripped(self) -> str:
@@ -110,14 +92,18 @@ class Dialog:
 
     def parse_tags(
         self,
+        doc: Document,
         parser: TagParser | None = None,
         strict: bool | None = None,
         escape_brace: bool | None = None,
         parse_escape_nodes: bool = False,
-    ) -> ParsedLine:
+    ) -> ParsedDialog:
+        from .parsed_event import ParsedDialog
+
         if parser is None:
             parser = DEFAULT_TAG_PARSER
-        return parser.parse(self.text, strict, escape_brace, parse_escape_nodes)
+        parsed = parser.parse(self.text, strict, escape_brace, parse_escape_nodes)
+        return ParsedDialog(doc=doc, event=self, parsed=parsed)
 
 
 class Events:

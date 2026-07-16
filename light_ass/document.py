@@ -4,8 +4,7 @@ from collections.abc import Sequence
 from typing import ClassVar, Protocol, Self
 
 from .constants import AssSectionHeader
-from .curly import DEFAULT_TAG_PARSER
-from .curly.parser import DrawingNode, TagParser
+from .curly import DEFAULT_TAG_PARSER, DrawingNode, TagParser
 from .curly.tags import (
     BorderTag,
     BorderXTag,
@@ -132,11 +131,11 @@ class Document:
         for event in self.events:
             if event.style == old_name:
                 event.style = new_name
-            parsed = parser.parse(event.text)
+            parsed = event.parse_tags(self, parser)
             changed = False
-            for part in parsed.parts:
-                if isinstance(part, ResetStyleTag) and part.value == old_name:
-                    part.value = new_name
+            for tag in parsed.get_tags(ResetStyleTag):
+                if tag.value == old_name:
+                    tag.value = new_name
                     changed = True
             if changed:
                 event.text = parsed.to_ass()
@@ -167,9 +166,9 @@ class Document:
             event.margin_r = int(event.margin_r * scale_x)
             event.margin_v = int(event.margin_v * scale_y)
 
-            parsed = parser.parse(event.text)
+            parsed = event.parse_tags(self, parser)
             modified = False
-            for part in parsed.parts:
+            for part in parsed.parsed:
                 if isinstance(part, DrawingNode):
                     modified = True
                     part.shape.scale(scale_x, scale_y)

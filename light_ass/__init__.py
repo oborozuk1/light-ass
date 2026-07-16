@@ -1,6 +1,7 @@
 from .curly import TagParser
 from .document import Document
 from .events import Dialog, Events
+from .parsed_event import ParsedDialog
 from .script_info import ScriptInfo
 from .styles import Style, Styles
 from .types import AssAlpha, AssColor, AssShape, AssTime
@@ -21,6 +22,7 @@ __all__ = [
     "ScriptInfo",
     "Style",
     "Styles",
+    "ParsedDialog",
     "TagParser",
     "__version__",
     "load",
