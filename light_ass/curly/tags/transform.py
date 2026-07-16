@@ -70,3 +70,6 @@ class TransformTag(ParensTag):
             params.append(self.accel)
         params.append(self.modifier)
         return tuple(params)  # type: ignore[return-value]
+
+    def to_ass(self) -> str:
+        return self._serialize()
