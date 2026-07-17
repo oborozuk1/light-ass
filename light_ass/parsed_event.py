@@ -15,19 +15,17 @@ if TYPE_CHECKING:
 _TagT = TypeVar("_TagT", bound=Tag)
 
 def _alignment_x(alignment: Align, width: int, margin_l: int, margin_r: int) -> int:
-    col = (alignment - 1) % 3
-    if col == 0:
+    if alignment.is_left():
         return margin_l
-    if col == 1:
+    if alignment.is_center():
         return (width + margin_l - margin_r) // 2
     return width - margin_r
 
 
 def _alignment_y(alignment: Align, height: int, margin_v: int) -> int:
-    row = (alignment - 1) // 3
-    if row == 0:
+    if alignment.is_bottom():
         return height - margin_v
-    if row == 1:
+    if alignment.is_mid():
         return height // 2
     return margin_v
 
@@ -123,11 +121,10 @@ class ParsedDialog:
                 else:
                    return start + (end - start) * ((t - t1) / (t2 - t1))
 
-        style = self.doc.styles[self.style]
         play_res_x = self.doc.info.get("PlayResX", 1920)
         play_res_y = self.doc.info.get("PlayResY", 1080)
         left, right, vertical = self.get_margin()
-        alignment = style.alignment
+        alignment = self.get_alignment()
 
         x = _alignment_x(alignment, play_res_x, left, right)
         y = _alignment_y(alignment, play_res_y, vertical)

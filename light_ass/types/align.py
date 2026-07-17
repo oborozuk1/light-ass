@@ -42,3 +42,21 @@ class Align(IntEnum):
     @property
     def legacy(self) -> int:
         return numpad2legacy(self.value)
+
+    def is_left(self) -> bool:
+        return self.value in (1, 4, 7)
+
+    def is_center(self) -> bool:
+        return self.value in (2, 5, 8)
+
+    def is_right(self) -> bool:
+        return self.value in (3, 6, 9)
+
+    def is_top(self) -> bool:
+        return self.value in (7, 8, 9)
+
+    def is_mid(self) -> bool:
+        return self.value in (4, 5, 6)
+
+    def is_bottom(self) -> bool:
+        return self.value in (1, 2, 3)
