@@ -115,15 +115,13 @@ class ParsedDialog:
                 if t1 <= 0 and t2 <= 0:
                     t1 = 0
                     t2 = int(self.end)
-                delta = t2 - t1
                 t = at - int(self.start)
                 if t <= t1:
-                    k = 0.0
+                    return start
                 elif t >= t2:
-                    k = 1.0
+                    return end
                 else:
-                    k = (t - t1) / delta
-                return (end - start) * k
+                   return start + (end - start) * ((t - t1) / (t2 - t1))
 
         style = self.doc.styles[self.style]
         play_res_x = self.doc.info.get("PlayResX", 1920)
