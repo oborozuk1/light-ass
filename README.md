@@ -7,6 +7,7 @@ A lightweight library for handling Advanced SubStation Alpha (ASS) subtitles.
 - Parse ASS subtitles effortlessly
 - Check the validity of field types
 - Parse ASS override tags
+- Unknown tags are preserved losslessly
 
 ## Installation
 
@@ -30,7 +31,6 @@ print(document.events)
 - Support for more sections
 - More methods for ASS shapes
 - ASS minifier
-- Support for VSFilterMod tags
 
 ## License
 
