@@ -31,6 +31,7 @@ class MoveNoClosingCmd(BaseDrawCmd):
     def serialize(self, decimal: int | None = None) -> str:
         return f"n {self.point.format(decimal)}"
 
+
 class LineCmd(BaseDrawCmd):
     def __init__(self, points: list[Point]):
         self.points = points

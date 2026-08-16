@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 _TagT = TypeVar("_TagT", bound=Tag)
 
+
 def _alignment_x(alignment: Align, width: int, margin_l: int, margin_r: int) -> int:
     if alignment.is_left():
         return margin_l
@@ -34,6 +35,7 @@ class ParsedDialog:
     doc: Document
     event: Dialog
     parsed: ParsedLine
+
     def __init__(self, doc: Document, event: Dialog, parsed: ParsedLine) -> None:
         self.doc = doc
         self.event = event
@@ -119,7 +121,7 @@ class ParsedDialog:
                 elif t >= t2:
                     return end
                 else:
-                   return start + (end - start) * ((t - t1) / (t2 - t1))
+                    return start + (end - start) * ((t - t1) / (t2 - t1))
 
         play_res_x = self.doc.info.resolve()["LayoutResX"]
         play_res_y = self.doc.info.resolve()["LayoutResY"]

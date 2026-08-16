@@ -143,7 +143,7 @@ class OverrideBlock:
         style: Style,
         doc: Document,
         original_style: Style | None = None,
-        fontsize_state: float | None = None
+        fontsize_state: float | None = None,
     ) -> tuple[OverrideBlock, Style, float]:
         if original_style is None:
             original_style = style
@@ -156,7 +156,8 @@ class OverrideBlock:
             if not isinstance(tag, SimpleTag):
                 if isinstance(tag, TransformTag):
                     tag.modifier, style, fontsize_state = tag.modifier.resolve(
-                        style, doc, original_style, fontsize_state)
+                        style, doc, original_style, fontsize_state
+                    )
                     for t in reversed(tag.modifier):
                         if isinstance(t, FontSizeAbsoluteTag):
                             fontsize_state = t.value
@@ -299,7 +300,7 @@ class OverrideBlock:
         self,
         keep_raw_tag: bool = True,
         keep_comment_node: bool = False,
-        keep_invalid_tags: bool = False
+        keep_invalid_tags: bool = False,
     ) -> None:
         from .parsed_line import CommentNode
 

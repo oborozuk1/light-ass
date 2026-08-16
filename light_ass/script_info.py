@@ -163,7 +163,7 @@ class ScriptInfo:
                 key = k
                 break
         key, parser = self._FIELD_PARSER.get(key_upper, (key, None))
-        if  parse and isinstance(value, str) and parser is not None:
+        if parse and isinstance(value, str) and parser is not None:
             self._items[key] = parser(value)
         else:
             self._items[key] = value

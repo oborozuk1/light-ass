@@ -152,7 +152,9 @@ class ParsedLine:
         fontsize_state: float = style.fontsize
         for part in self.parts:
             if isinstance(part, OverrideBlock):
-                new_block, style, fontsize_state = part.resolve(style, doc, original_style, fontsize_state)
+                new_block, style, fontsize_state = part.resolve(
+                    style, doc, original_style, fontsize_state
+                )
                 parts.append(new_block)
             else:
                 parts.append(deepcopy(part))
@@ -168,8 +170,7 @@ class ParsedLine:
                 groups[group][part_idx].extend(tags)
 
         return {
-            group: group.policy.simplify_across_blocks(blocks)
-            for group, blocks in groups.items()
+            group: group.policy.simplify_across_blocks(blocks) for group, blocks in groups.items()
         }
 
     def get_effective(self, group_name: str) -> list[Tag]:
@@ -219,7 +220,7 @@ class ParsedLine:
         self,
         keep_raw_tag: bool = True,
         keep_comment_node: bool = False,
-        keep_invalid_tags: bool = False
+        keep_invalid_tags: bool = False,
     ) -> None:
         self.merge_adjacent_override_blocks()
 
@@ -239,7 +240,8 @@ class ParsedLine:
             ]
 
         self.parts = [
-            part for part in self.parts
+            part
+            for part in self.parts
             if not isinstance(part, OverrideBlock) or len(part.nodes) > 0
         ]
 

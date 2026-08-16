@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterator
-from typing import Any, overload
+from typing import Any, Self, overload
 
 
 class Point:
@@ -59,21 +59,21 @@ class Point:
     def __repr__(self) -> str:
         return f"Point({self.x}, {self.y})"
 
-    def __add__(self, other: Point | tuple[float, float]) -> Point:
+    def __add__(self, other: Point | tuple[float, float]) -> Self:
         ox, oy = other
-        return Point(self.x + ox, self.y + oy)
+        return type(self)(self.x + ox, self.y + oy)
 
-    def __sub__(self, other: Point | tuple[float, float]) -> Point:
+    def __sub__(self, other: Point | tuple[float, float]) -> Self:
         ox, oy = other
-        return Point(self.x - ox, self.y - oy)
+        return type(self)(self.x - ox, self.y - oy)
 
-    def __mul__(self, scalar: float) -> Point:
-        return Point(self.x * scalar, self.y * scalar)
+    def __mul__(self, scalar: float) -> Self:
+        return type(self)(self.x * scalar, self.y * scalar)
 
     __rmul__ = __mul__
 
-    def __neg__(self) -> Point:
-        return Point(-self.x, -self.y)
+    def __neg__(self) -> Self:
+        return type(self)(-self.x, -self.y)
 
     def scale(self, factor_x: float, factor_y: float | None = None) -> None:
         if factor_y is None:

@@ -61,22 +61,42 @@ class AssShape:
         if clockwise:
             commands = [
                 MoveCmd(Point(cx + r, cy)),
-                BezierCmd([
-                    Point(cx + r, cy + magic), Point(cx + magic, cy + r), Point(cx, cy + r),
-                    Point(cx - magic, cy + r), Point(cx - r, cy + magic), Point(cx - r, cy),
-                    Point(cx - r, cy - magic), Point(cx - magic, cy - r), Point(cx, cy - r),
-                    Point(cx + magic, cy - r), Point(cx + r, cy - magic), Point(cx + r, cy),
-                ]),
+                BezierCmd(
+                    [
+                        Point(cx + r, cy + magic),
+                        Point(cx + magic, cy + r),
+                        Point(cx, cy + r),
+                        Point(cx - magic, cy + r),
+                        Point(cx - r, cy + magic),
+                        Point(cx - r, cy),
+                        Point(cx - r, cy - magic),
+                        Point(cx - magic, cy - r),
+                        Point(cx, cy - r),
+                        Point(cx + magic, cy - r),
+                        Point(cx + r, cy - magic),
+                        Point(cx + r, cy),
+                    ]
+                ),
             ]
         else:
             commands = [
                 MoveCmd(Point(cx + r, cy)),
-                BezierCmd([
-                    Point(cx + r, cy - magic), Point(cx + magic, cy - r), Point(cx, cy - r),
-                    Point(cx - magic, cy - r), Point(cx - r, cy - magic), Point(cx - r, cy),
-                    Point(cx - r, cy + magic), Point(cx - magic, cy + r), Point(cx, cy + r),
-                    Point(cx + magic, cy + r), Point(cx + r, cy + magic), Point(cx + r, cy),
-                ]),
+                BezierCmd(
+                    [
+                        Point(cx + r, cy - magic),
+                        Point(cx + magic, cy - r),
+                        Point(cx, cy - r),
+                        Point(cx - magic, cy - r),
+                        Point(cx - r, cy - magic),
+                        Point(cx - r, cy),
+                        Point(cx - r, cy + magic),
+                        Point(cx - magic, cy + r),
+                        Point(cx, cy + r),
+                        Point(cx + magic, cy + r),
+                        Point(cx + r, cy + magic),
+                        Point(cx + r, cy),
+                    ]
+                ),
             ]
         return cls(commands)
 
