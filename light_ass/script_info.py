@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Callable, Iterator
 from typing import Any, ClassVar, Literal, Self
 
@@ -100,6 +102,41 @@ class ScriptInfo:
 
     def __repr__(self) -> str:
         return f"ScriptInfo({self._items!r})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ScriptInfo):
+            return NotImplemented
+        return self._items == other._items
+
+    def copy(self) -> ScriptInfo:
+        return ScriptInfo(self._items.copy())
+
+    def resolve(self) -> ScriptInfo:
+        info = self._items.copy()
+
+        play_res_x = self.get("PlayResX", 0)
+        play_res_y = self.get("PlayResY", 0)
+        if play_res_x <= 0 and play_res_y <= 0:
+            info["PlayResX"] = 384
+            info["PlayResY"] = 288
+        else:
+            if play_res_y <= 0 and play_res_x == 1280:
+                info["PlayResY"] = 1024
+            elif play_res_y <= 0:
+                info["PlayResY"] = play_res_x * 3 // 4
+            elif play_res_x <= 0 and play_res_y == 1024:
+                info["PlayResX"] = 1280
+            elif play_res_x <= 0:
+                info["PlayResX"] = play_res_y * 4 // 3
+
+        layout_res_x = self.get("LayoutResX", 0)
+        layout_res_y = self.get("LayoutResY", 0)
+        if layout_res_x <= 0:
+            info["LayoutResX"] = info["PlayResX"]
+        if layout_res_y <= 0:
+            info["LayoutResY"] = info["PlayResY"]
+
+        return ScriptInfo(info)
 
     def get(self, key: str, default: Any = None) -> Any:
         for k, value in self._items.items():

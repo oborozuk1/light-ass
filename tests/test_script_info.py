@@ -172,3 +172,46 @@ class TestScriptInfoRepr:
     def test_repr(self):
         info = ScriptInfo({"Title": "Test"})
         assert "Title" in repr(info)
+
+
+class TestScriptInfoResolve:
+    def test_empty_defaults(self):
+        info = ScriptInfo().resolve()
+        assert info["PlayResX"] == 384
+        assert info["PlayResY"] == 288
+        assert info["LayoutResX"] == 384
+        assert info["LayoutResY"] == 288
+
+    def test_missing_y_4_3(self):
+        info = ScriptInfo({"PlayResX": 1920}).resolve()
+        assert info["PlayResX"] == 1920
+        assert info["PlayResY"] == 1440
+
+    def test_missing_y_1280_special_case(self):
+        info = ScriptInfo({"PlayResX": 1280}).resolve()
+        assert info["PlayResY"] == 1024
+
+    def test_missing_x(self):
+        info = ScriptInfo({"PlayResY": 720}).resolve()
+        assert info["PlayResX"] == 960
+        assert info["PlayResY"] == 720
+
+    def test_missing_x_1024_special_case(self):
+        info = ScriptInfo({"PlayResY": 1024}).resolve()
+        assert info["PlayResX"] == 1280
+
+    def test_layout_res_falls_back_to_play_res(self):
+        info = ScriptInfo({"PlayResX": 1920, "PlayResY": 1080, "LayoutResX": 384}).resolve()
+        assert info["LayoutResX"] == 384
+        assert info["LayoutResY"] == 1080
+
+    def test_complete_info_unchanged(self):
+        original = ScriptInfo(
+            {"PlayResX": 1920, "PlayResY": 1080, "LayoutResX": 1920, "LayoutResY": 1080}
+        )
+        assert original.resolve() == original
+
+    def test_does_not_mutate_original(self):
+        original = ScriptInfo({"PlayResX": 1920})
+        original.resolve()
+        assert original.get("PlayResY", 0) == 0
