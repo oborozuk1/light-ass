@@ -121,8 +121,8 @@ class ParsedDialog:
                 else:
                    return start + (end - start) * ((t - t1) / (t2 - t1))
 
-        play_res_x = self.doc.info.get("PlayResX", 1920)
-        play_res_y = self.doc.info.get("PlayResY", 1080)
+        play_res_x = self.doc.info.resolve()["LayoutResX"]
+        play_res_y = self.doc.info.resolve()["LayoutResY"]
         left, right, vertical = self.get_margin()
         alignment = self.get_alignment()
 
