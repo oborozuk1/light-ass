@@ -203,7 +203,7 @@ class ScriptInfo:
         self.messages = messages if messages is not None else []
 
     def to_ass(self) -> str:
-        parts = []
+        parts = [f"; {m}" for m in self.messages if m.strip()]
         for key, value in self._items.items():
             if isinstance(value, bool):
                 value = "yes" if value else "no"
