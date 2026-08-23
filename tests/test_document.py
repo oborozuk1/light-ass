@@ -244,9 +244,9 @@ class TestDocumentSectionParsers:
                 self.data = {}
 
             @classmethod
-            def from_ass(cls, text, strict=False):
+            def from_lines(cls, lines, strict=False):
                 instance = cls()
-                for line in text.splitlines():
+                for line in lines:
                     k, _, v = line.partition(":")
                     instance.data[k.strip()] = v.strip()
                 return instance
@@ -265,7 +265,7 @@ class TestDocumentSectionParsers:
             SECTION_NAME = "Mysection"
 
             @classmethod
-            def from_ass(cls, text, strict=False):
+            def from_lines(cls, lines, strict=False):
                 return cls()
 
             def to_ass(self):

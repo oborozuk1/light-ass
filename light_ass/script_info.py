@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from typing import Any, ClassVar, Literal, Self
 
 from .utils import HeaderTypeParser
@@ -169,10 +169,12 @@ class ScriptInfo:
             self._items[key] = value
 
     @classmethod
-    def from_ass(cls, text: str, strict: bool = False) -> Self:
+    def from_lines(cls, lines: Sequence[str], strict: bool = False) -> Self:
         info: dict[str, Any] = {}
         messages = []
-        for line in text.splitlines():
+        for line in lines:
+            if not line or line.isspace():
+                continue
             if line.startswith(";"):
                 messages.append(line[1:].strip())
             elif line.startswith("!:"):
@@ -184,6 +186,10 @@ class ScriptInfo:
                         raise ValueError(f"Duplicate key: {key}")
                 info[key] = value
         return cls.from_dict(info, messages)
+
+    @classmethod
+    def from_ass(cls, text: str, strict: bool = False) -> Self:
+        return cls.from_lines(text.splitlines(), strict)
 
     @classmethod
     def from_dict(cls, dic: dict[str, Any], messages: list[str] | None = None) -> Self:

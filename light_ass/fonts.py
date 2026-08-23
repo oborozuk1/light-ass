@@ -26,6 +26,10 @@ class Fonts:
         self.items = fonts or {}
 
     @classmethod
+    def from_lines(cls, lines: list[str], strict: bool = False) -> Self:
+        return cls.from_ass("\n".join(lines))
+
+    @classmethod
     def from_ass(cls, text: str, strict: bool = False) -> Self:
         font_dict = {}
         fontname = None

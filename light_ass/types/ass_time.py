@@ -1,27 +1,29 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-from typing import ClassVar
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1024)
+def parse_ms(s: str) -> int:
+    h_end = s.index(":")
+    m_end = s.index(":", h_end + 1)
+    dot = s.index(".", m_end + 1)
+    return (
+        int(s[:h_end]) * 3600000
+        + int(s[h_end + 1 : m_end]) * 60000
+        + int(s[m_end + 1 : dot]) * 1000
+        + int(s[dot + 1 :].ljust(3, "0"))
+    )
 
 
 @dataclass(slots=True)
 class AssTime:
-    ASS_TIME_PATTERN: ClassVar[re.Pattern[str]] = re.compile(
-        r"(\d+):(\d+):(\d+).(\d+)", flags=re.ASCII
-    )
     time: int
 
     @classmethod
     def parse(cls, s: str) -> AssTime:
-        hours, minutes, seconds_ms = s.split(":")
-        seconds, milliseconds = seconds_ms.split(".", maxsplit=1)
-        return cls(
-            int(hours) * 3600000
-            + int(minutes) * 60000
-            + int(seconds) * 1000
-            + int(milliseconds.ljust(3, "0"))
-        )
+        return cls(parse_ms(s))
 
     def to_ass(self) -> str:
         ms = max(0, int(round(self.time)))

@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Self
 
@@ -257,19 +257,28 @@ class Styles:
         self._items[new_name] = style
 
     @classmethod
-    def from_ass(cls, text: str, strict: bool = False) -> Self:
+    def from_lines(cls, lines: Sequence[str], strict: bool = False) -> Self:
         style_list = []
         style_format = None
-        for line in text.splitlines():
+        for line in lines:
+            if not line or line.isspace():
+                continue
             if line[:7].lower() == "format:":
                 if strict and style_format:
                     raise ValueError("Style Format line already declared")
                 style_format = tuple(map(lambda s: s.strip(" \t").lower(), line[7:].split(",")))
             elif strict and style_format is None:
-                raise ValueError("Event Format line not declared")
+                raise ValueError("Style Format line not declared")
+            elif line[:6].lower() != "style:":
+                if strict:
+                    raise ValueError(f"Invalid style line: {line!r}")
             else:
-                style_list.append(Style.from_ass(line, style_format or DEFAULT_STYLE_FORMAT))
+                style_list.append(Style.from_ass(line, style_format))
         return cls(style_list)
+
+    @classmethod
+    def from_ass(cls, text: str, strict: bool = False) -> Self:
+        return cls.from_lines(text.splitlines(), strict)
 
     def to_ass(self) -> str:
         return f"Format: {', '.join(DEFAULT_STYLE_FORMAT)}\n" + "\n".join(

@@ -1,6 +1,7 @@
 import pytest
 
 from light_ass import AssTime
+from light_ass.types.ass_time import parse_ms
 
 
 class TestAssTimeParse:
@@ -39,6 +40,26 @@ class TestAssTimeParse:
     def test_parse_zero_padded_hours(self):
         t = AssTime.parse("00:00:05.00")
         assert t.time == 5000
+
+    def test_parse_returns_fresh_instance(self):
+        t1 = AssTime.parse("0:00:01.00")
+        t2 = AssTime.parse("0:00:01.00")
+        assert t1 == t2
+        assert t1 is not t2
+
+
+class TestAssTimeParseCache:
+    def test_cache_hit(self):
+        parse_ms.cache_clear()
+        AssTime.parse("0:00:01.00")
+        AssTime.parse("0:00:01.00")
+        assert parse_ms.cache_info().hits >= 1
+
+    def test_cache_bounded(self):
+        parse_ms.cache_clear()
+        for i in range(parse_ms.cache_info().maxsize + 500):
+            AssTime.parse(f"0:00:00.{i % 100:02d}{i // 100}")
+        assert parse_ms.cache_info().currsize <= parse_ms.cache_info().maxsize
 
 
 class TestAssTimeToAss:

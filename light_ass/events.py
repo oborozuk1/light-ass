@@ -9,6 +9,8 @@ from .curly import DEFAULT_TAG_PARSER
 from .types import AssTime
 from .utils import HeaderTypeParser
 
+DEFAULT_EVENT_FORMAT_LOWER = tuple(s.lower() for s in DEFAULT_EVENT_FORMAT)
+
 if TYPE_CHECKING:
     from .curly import TagParser
     from .document import Document
@@ -57,8 +59,8 @@ class Dialog:
 
     @classmethod
     def from_ass(cls, line: str, format_order: tuple[str, ...] | None = None) -> Self:
-        if format_order is None:
-            format_order = DEFAULT_EVENT_FORMAT
+        if format_order is None or format_order == DEFAULT_EVENT_FORMAT_LOWER:
+            return cls._from_ass_default(line)
 
         if format_order[-1].lower() != "text":
             raise ValueError(
@@ -78,6 +80,26 @@ class Dialog:
                 args[field_name] = parser(value)
 
         return cls(**args)
+
+    @classmethod
+    def _from_ass_default(cls, line: str) -> Self:
+        comment = line[0] in "Cc"
+        _, _, line = line.partition(":")
+        fields = line.split(",", 9)
+        layer, start, end, style, name, margin_l, margin_r, margin_v, effect, text = fields
+        return cls(
+            text=text.lstrip(" \t"),
+            comment=comment,
+            layer=HeaderTypeParser.parse_int(layer),
+            start=AssTime.parse(start),
+            end=AssTime.parse(end),
+            style=style.lstrip(" \t").lstrip("*"),
+            name=name.lstrip(" \t"),
+            margin_l=HeaderTypeParser.parse_int(margin_l),
+            margin_r=HeaderTypeParser.parse_int(margin_r),
+            margin_v=HeaderTypeParser.parse_int(margin_v),
+            effect=effect.lstrip(" \t"),
+        )
 
     def to_ass(self) -> str:
         type_ = "Dialogue" if not self.comment else "Comment"
@@ -172,19 +194,32 @@ class Events:
             self._items[i].shift(ms)
 
     @classmethod
-    def from_ass(cls, text: str, strict: bool = False) -> Self:
+    def from_lines(cls, lines: Sequence[str], strict: bool = False) -> Self:
         dialog_list = []
         event_format = None
-        for line in text.splitlines():
+        use_fast = True
+        for line in lines:
+            if not line or line.isspace():
+                continue
             if line[:7].lower() == "format:":
                 if strict and event_format:
                     raise ValueError("Event Format line already declared")
                 event_format = tuple(map(lambda s: s.strip(" \t").lower(), line[7:].split(",")))
+                use_fast = event_format == DEFAULT_EVENT_FORMAT_LOWER
             elif strict and event_format is None:
                 raise ValueError("Event Format line not declared")
+            elif line[:9].lower() != "dialogue:" and line[:8].lower() != "comment:":
+                if strict:
+                    raise ValueError(f"Invalid event line: {line!r}")
+            elif use_fast:
+                dialog_list.append(Dialog._from_ass_default(line))
             else:
                 dialog_list.append(Dialog.from_ass(line, event_format))
         return cls(dialog_list)
+
+    @classmethod
+    def from_ass(cls, text: str, strict: bool = False) -> Self:
+        return cls.from_lines(text.splitlines(), strict)
 
     def to_ass(self) -> str:
         return f"Format: {', '.join(DEFAULT_EVENT_FORMAT)}\n" + "\n".join(

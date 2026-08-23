@@ -1,5 +1,4 @@
 import copy
-import re
 from collections.abc import Sequence
 from typing import ClassVar, Protocol, Self
 
@@ -25,38 +24,39 @@ from .curly.tags import (
 from .events import Events
 from .script_info import ScriptInfo
 from .styles import Styles
-from .utils import detect_file_encoding
+from .utils import detect_bytes_encoding
 
 __all__ = [
     "Document",
 ]
 
-_SECTION_PATTERN = re.compile(r"^\s*\[([^]]+)].*$", flags=re.MULTILINE)
 
-
-def _split_into_sections(text: str) -> dict[str, str]:
+def _split_into_sections(text: str) -> dict[str, list[str]]:
     sections: dict[str, list[str]] = {}
-    section_name = "Unknown"
-    for i, t in enumerate(_SECTION_PATTERN.split(text)):
-        if i % 2 == 1:
-            section_name = t.title()
-        else:
-            sections.setdefault(section_name, []).append(t)
-    return {k: "\n".join(v).strip() for k, v in sections.items()}
+    current: list[str] | None = None
+    for line in text.splitlines():
+        stripped = line.lstrip(" \t")
+        if stripped[:1] == "[":
+            end = stripped.find("]")
+            if end > 0:
+                current = sections.setdefault(stripped[1:end].title(), [])
+                continue
+        if current is None:
+            current = sections.setdefault("Unknown", [])
+        current.append(line)
+    return sections
 
 
 class Section(Protocol):
     SECTION_NAME: ClassVar[str]
 
     @classmethod
-    def from_ass(cls, text: str, strict: bool) -> Self: ...
+    def from_lines(cls, lines: Sequence[str], strict: bool) -> Self: ...
 
     def to_ass(self) -> str: ...
 
 
 class Document:
-    _SECTION_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"\[([^]]+)]")
-
     def __init__(
         self,
         info: ScriptInfo | None = None,
@@ -82,10 +82,11 @@ class Document:
         drop_unknown_sections: bool = True,
         extra_sections: Sequence[type[Section]] | None = None,
     ) -> Self:
+        with open(path, "rb") as f:
+            data = f.read()
         if encoding is None:
-            encoding = detect_file_encoding(path) or "utf-8-sig"
-        with open(path, "r", encoding=encoding) as f:
-            return cls.from_string(f.read(), strict, drop_unknown_sections, extra_sections)
+            encoding = detect_bytes_encoding(data[:1024]) or "utf-8-sig"
+        return cls.from_string(data.decode(encoding), strict, drop_unknown_sections, extra_sections)
 
     @classmethod
     def from_string(
@@ -111,19 +112,18 @@ class Document:
         extra_section_mapping = {s.SECTION_NAME: s for s in extra_sections}
         self.section_order = [s.SECTION_NAME for s in extra_sections]
 
-        section_content = _split_into_sections(ass_text)
-        for section_name, text in section_content.items():
+        section_lines = _split_into_sections(ass_text)
+        for section_name, lines in section_lines.items():
             if section_name == AssSectionHeader.SCRIPT_INFO:
-                self.info = ScriptInfo.from_ass(text, strict)
+                self.info = ScriptInfo.from_lines(lines, strict)
             elif section_name == AssSectionHeader.ASS_STYLES:
-                self.styles = Styles.from_ass(text, strict)
+                self.styles = Styles.from_lines(lines, strict)
             elif section_name == AssSectionHeader.EVENTS:
-                self.events = Events.from_ass(text, strict)
-            else:
-                if section := extra_section_mapping.get(section_name):
-                    self.section_results[section_name] = section.from_ass(text, strict)
-                elif not drop_unknown_sections:
-                    self.unknown_sections.setdefault(section_name, []).append(text)
+                self.events = Events.from_lines(lines, strict)
+            elif section := extra_section_mapping.get(section_name):
+                self.section_results[section_name] = section.from_lines(lines, strict)
+            elif not drop_unknown_sections:
+                self.unknown_sections.setdefault(section_name, []).append("\n".join(lines).strip())
 
     def rename_style(self, old_name: str, new_name: str) -> None:
         self.styles.rename(old_name, new_name)

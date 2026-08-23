@@ -49,6 +49,10 @@ class HeaderTypeParser:
 
     @staticmethod
     def parse_int(s: str) -> int:
+        try:
+            return int(s)
+        except ValueError:
+            pass
         s = s.lower()
         base = 10
         if s.startswith(("&h", "0x")):
