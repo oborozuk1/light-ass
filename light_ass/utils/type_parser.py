@@ -34,7 +34,10 @@ class TypeParser:
 
     @staticmethod
     def parse_int(param: str, strict: bool = False) -> int:
-        return TypeParser.parse_int_with_pos(param, strict)[0]
+        try:
+            return int(param.lstrip(" \t"))
+        except ValueError:
+            return TypeParser.parse_int_with_pos(param, strict)[0]
 
     @staticmethod
     def parse_align(param: str, strict: bool = False) -> Align:
@@ -64,7 +67,10 @@ class TypeParser:
 
     @staticmethod
     def parse_float(param: str, strict: bool = False) -> float:
-        return TypeParser.parse_float_with_pos(param, strict)[0]
+        try:
+            return float(param)
+        except ValueError:
+            return TypeParser.parse_float_with_pos(param, strict)[0]
 
     @staticmethod
     def parse_str(param: str) -> str:

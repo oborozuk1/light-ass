@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from ..styles import Style
 
 
-@dataclass
+@dataclass(frozen=True)
 class CommentNode:
     text: str
 

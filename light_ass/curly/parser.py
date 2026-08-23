@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
+from functools import lru_cache
 from typing import Any, ClassVar
 
 from ..types import AssShape
@@ -68,14 +69,24 @@ class TagParser:
 
     @staticmethod
     def split_params(raw: str) -> list[str]:
+        if not raw:
+            return []
+        if "," not in raw and "\\" not in raw:
+            raw = raw.strip(" \t")
+            return [raw] if raw else []
         first, sep, rest = raw.partition("\\")
-        parts = [x.strip(" \t") for x in first.split(",") if x.strip(" \t")]
+        parts = []
+        for x in first.split(","):
+            if x := x.strip(" \t"):
+                parts.append(x)
         if sep:
             parts.append("\\" + rest)
         return parts
 
     @classmethod
     def split_escape_nodes(cls, text: str) -> list[EscapeNode | TextNode]:
+        if "\\" not in text:
+            return [TextNode(text)]
         parts = cls._ESCAPE_PATTERN.split(text)
         if len(parts) == 1:
             return [TextNode(parts[0])]
@@ -98,17 +109,104 @@ class TagParser:
         self._registry = registry
         self._tag_name_set = frozenset(registry.keys())
         self._max_len = max(len(tag_name) for tag_name in self._tag_name_set)
+        self._find_tag_cls = lru_cache(maxsize=4096)(self._find_tag_cls_uncached)
+        self._raw_tag_of = lru_cache(maxsize=65536)(self._raw_tag_of_uncached)
+        self._scan_modifier = lru_cache(maxsize=1024)(self._scan_block_uncached)
+        self._simple_classes = frozenset(t for t in self._tag_set if issubclass(t, SimpleTag))
+
+    def _find_tag_cls_uncached(self, cmd: str) -> tuple[str, type[Tag]] | None:
+        names = self._tag_name_set
+        registry = self._registry
+        for i in range(min(self._max_len, len(cmd)), 0, -1):
+            name = cmd[:i]
+            if name in names:
+                return name, registry[name]
+        return None
 
     def find_tag_cls(self, cmd: str) -> tuple[str, type[Tag]] | None:
-        if self._registry.get(cmd):
-            return cmd, self._registry[cmd]
+        return self._find_tag_cls(cmd[: self._max_len])
 
-        n = min(self._max_len, len(cmd))
-        for i in range(n, 0, -1):
-            name = cmd[:i]
-            if name in self._tag_name_set:
-                return name, self._registry[name]
-        return None
+    def _raw_tag_of_uncached(self, raw_text: str) -> RawTag:
+        tag_match = self._TAG_PATTERN.match(raw_text)
+        if tag_match is None:
+            return RawTag(raw_text[1:], (), raw_text, None)
+        end = tag_match.end()
+        cmd, matched_params = tag_match.group(1, 2)
+        raw_params = matched_params or ""
+
+        pos = end
+        n_open = raw_params.count("(")
+        length = len(raw_text)
+        while n_open:
+            if pos >= length or raw_text[pos] != ")":
+                break
+            pos += 1
+            n_open -= 1
+        if pos > end:
+            raw_params += raw_text[end:pos]
+
+        params = self.split_params(raw_params)
+
+        result = self.find_tag_cls(cmd)
+        if result is None:
+            return RawTag(cmd, tuple(params), raw_text, None)
+
+        tag_name, tag_cls = result
+        if tag_cls in self._simple_classes:
+            if param := cmd[len(tag_name) :]:
+                params.append(param)
+        return RawTag(tag_name, tuple(params), raw_text, tag_cls)
+
+    def _scan_block_uncached(self, block_str: str) -> tuple[RawTag | CommentNode, ...]:
+        length = len(block_str)
+        raw_tags: list[RawTag | CommentNode] = []
+        append = raw_tags.append
+        prev_pos = 0
+        finditer = self._TAG_PATTERN.finditer
+        raw_tag_of = self._raw_tag_of
+        for tag_match in finditer(block_str):
+            start, end = tag_match.span()
+            if prev_pos < start:
+                append(CommentNode(block_str[prev_pos:start]))
+            prev_pos = end
+            matched_params = tag_match[2]
+
+            if matched_params is not None:
+                n_open = matched_params.count("(")
+                while n_open:
+                    if prev_pos >= length or block_str[prev_pos] != ")":
+                        break
+                    prev_pos += 1
+                    n_open -= 1
+
+            append(raw_tag_of(block_str[start:prev_pos]))
+
+        if prev_pos < length:
+            append(CommentNode(block_str[prev_pos:]))
+
+        return tuple(raw_tags)
+
+    def _instantiate_block(
+        self, raw_tags: tuple[RawTag | CommentNode, ...], strict: bool
+    ) -> OverrideBlock:
+        tags: list[BracedNode] = []
+        append = tags.append
+        for raw_tag in raw_tags:
+            if isinstance(raw_tag, CommentNode):
+                append(raw_tag)
+                continue
+            if raw_tag.cls is None:
+                if strict:
+                    raise ValueError(f"Unknown tag name: {raw_tag.name!r}")
+                append(raw_tag)
+                continue
+            try:
+                append(raw_tag.cls.from_raw(raw_tag, strict=strict, parser=self))
+            except ValueError as e:
+                if strict:
+                    raise e
+                append(raw_tag)
+        return OverrideBlock(tags)
 
     def parse_block(self, block_str: str, strict: bool | None = None) -> OverrideBlock:
         if strict is None:
@@ -117,64 +215,16 @@ class TagParser:
         if strict and block_str.find("{") != -1:
             raise ValueError(f"Braces are not allowed in strict mode: {block_str!r}")
 
-        length = len(block_str)
-        raw_tags: list[RawTag | CommentNode] = []
-        prev_pos = 0
-        for tag_match in self._TAG_PATTERN.finditer(block_str):
-            start, end = tag_match.span()
-            if prev_pos < start:
-                raw_tags.append(CommentNode(block_str[prev_pos:start]))
-            prev_pos = end
-            cmd = tag_match.group(1)
-            raw_params = tag_match.group(2) or ""
-            raw_text = tag_match.group(0)
+        return self._instantiate_block(self._scan_block_uncached(block_str), strict)
 
-            for _ in range(raw_params.count("(")):
-                if prev_pos >= length or block_str[prev_pos] != ")":
-                    break
-                prev_pos += 1
+    def parse_modifier(self, modifier: str, strict: bool | None = None) -> OverrideBlock:
+        if strict is None:
+            strict = self.strict
 
-            if prev_pos > end:
-                suffix = block_str[end:prev_pos]
-                raw_text += suffix
-                raw_params += suffix
+        if strict and modifier.find("{") != -1:
+            raise ValueError(f"Braces are not allowed in strict mode: {modifier!r}")
 
-            params = self.split_params(raw_params)
-
-            result = self.find_tag_cls(cmd)
-
-            if result is None:
-                raw_tags.append(RawTag(cmd, tuple(params), raw_text, None))
-                continue
-
-            tag_name, tag_cls = result
-
-            if issubclass(tag_cls, SimpleTag):
-                if param := cmd[len(tag_name) :]:
-                    params.append(param)
-
-            raw_tags.append(RawTag(tag_name, tuple(params), raw_text, tag_cls))
-
-        if prev_pos < length:
-            raw_tags.append(CommentNode(block_str[prev_pos:]))
-
-        tags: list[BracedNode] = []
-        for raw_tag in raw_tags:
-            if isinstance(raw_tag, CommentNode):
-                tags.append(raw_tag)
-                continue
-            try:
-                if raw_tag.cls is None:
-                    raise ValueError(f"Unknown tag name: {raw_tag.name!r}")
-                else:
-                    tag = raw_tag.cls.from_raw(raw_tag, strict=strict, parser=self)
-                    tags.append(tag)
-            except ValueError as e:
-                if strict:
-                    raise e
-                tags.append(raw_tag)
-
-        return OverrideBlock(tags)
+        return self._instantiate_block(self._scan_modifier(modifier), strict)
 
     def parse(
         self,

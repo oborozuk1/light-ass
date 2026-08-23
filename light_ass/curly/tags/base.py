@@ -70,7 +70,7 @@ class EffectGroup:
     policy: type[EffectPolicy] = OverridePolicy
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class RawTag:
     name: str
     params: tuple[str, ...]
@@ -93,10 +93,11 @@ class Tag(ABC):
 
     def __init__(self, _raw: RawTag | None = None) -> None:
         object.__setattr__(self, "_raw", _raw)
-        self._dirty = False
+        object.__setattr__(self, "_dirty", False)
 
     def __setattr__(self, name: str, value: Any) -> None:
-        object.__setattr__(self, "_dirty", True)
+        if name != "_dirty":
+            object.__setattr__(self, "_dirty", True)
         object.__setattr__(self, name, value)
 
     def __repr__(self) -> str:
@@ -137,8 +138,7 @@ class SimpleTag(Tag, ABC, Generic[VT]):
 
     def __init__(self, value: VT | None = None, _raw: RawTag | None = None) -> None:
         super().__init__(_raw=_raw)
-        self.value = value
-        self._dirty = False
+        object.__setattr__(self, "value", value)
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)

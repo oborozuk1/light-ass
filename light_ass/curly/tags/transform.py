@@ -25,11 +25,10 @@ class TransformTag(ParensTag):
         _raw: RawTag | None = None,
     ) -> None:
         super().__init__(_raw=_raw)
-        self.modifier = modifier
-        self.t1 = t1
-        self.t2 = t2
-        self.accel = accel
-        self._dirty = False
+        object.__setattr__(self, "modifier", modifier)
+        object.__setattr__(self, "t1", t1)
+        object.__setattr__(self, "t2", t2)
+        object.__setattr__(self, "accel", accel)
 
     @classmethod
     def from_raw(
@@ -41,7 +40,7 @@ class TransformTag(ParensTag):
 
         modifier = raw.params[-1]
         if parser is not None:
-            parsed_modifier: OverrideBlock = parser.parse_block(modifier, strict=strict)
+            parsed_modifier: OverrideBlock = parser.parse_modifier(modifier, strict=strict)
         else:
             raise ValueError("TagParser is required to parse the modifier of TransformTag")
 
