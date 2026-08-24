@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 from ...utils import TypeParser
 from .base import AccumulatePolicy, EffectGroup, RawTag, SimpleTag
@@ -32,10 +32,12 @@ class FontSizeTag(SimpleTag[float], ABC):
         if param[0] in "+-":
             tag_cls = FontSizeRelativeTag
 
-        try:
-            return tag_cls(TypeParser.parse_float(param), _raw=raw)
-        except ValueError:
-            return tag_cls(None, _raw=raw)
+        if strict:
+            try:
+                return tag_cls(TypeParser.parse_float(param), _raw=raw)
+            except ValueError:
+                return tag_cls(None, _raw=raw)
+        return tag_cls._create_deferred(raw)
 
 
 class FontSizeAbsoluteTag(FontSizeTag):
@@ -61,22 +63,11 @@ class FontNameTag(SimpleTag[str]):
     def _parse_param(param: str) -> str:
         return param
 
-    @classmethod
-    def from_raw(cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None) -> Self:
-        if len(raw.params) == 0:
-            return cls(None, _raw=raw)
-
-        if len(raw.params) > 1 and strict:
-            raise ValueError(f"{cls.__name__} expected 1 param, got {len(raw.params)}")
-
-        param = raw.params[0]
-        if param == "0":
-            return cls(None, _raw=raw)
-
-        try:
-            return cls(cls._parse_param(param), _raw=raw)
-        except ValueError:
-            return cls(None, _raw=raw)
+    def _parse_value(self) -> str | None:
+        value = super()._parse_value()
+        if value == "0":
+            return None
+        return value
 
     def normalize(self) -> None:
         if self.value == "0":

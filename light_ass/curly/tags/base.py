@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, Self, TypeVar, cast
 
 from ...utils import Formatter
 
@@ -10,6 +10,22 @@ if TYPE_CHECKING:
     from ..parser import TagParser
 
 VT = TypeVar("VT")
+
+
+class _Unset:
+    __slots__ = ()
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> _Unset:
+        return self
+
+    def __copy__(self) -> _Unset:
+        return self
+
+    def __repr__(self) -> str:
+        return "<UNSET>"
+
+
+_UNSET = _Unset()
 
 
 class EffectPolicy:
@@ -95,6 +111,13 @@ class Tag(ABC):
         object.__setattr__(self, "_raw", _raw)
         object.__setattr__(self, "_dirty", False)
 
+    @classmethod
+    def _create_deferred(cls, raw: RawTag) -> Self:
+        tag = cls.__new__(cls)
+        object.__setattr__(tag, "_raw", raw)
+        object.__setattr__(tag, "_dirty", False)
+        return tag
+
     def __setattr__(self, name: str, value: Any) -> None:
         if name != "_dirty":
             object.__setattr__(self, "_dirty", True)
@@ -132,9 +155,11 @@ class Tag(ABC):
 
 
 class SimpleTag(Tag, ABC, Generic[VT]):
-    __slots__ = ("value",)
+    __slots__ = ("_value",)
 
-    value: VT | None
+    _lazy_init: ClassVar[bool] = False
+
+    _value: VT | None | _Unset
 
     def __init__(self, value: VT | None = None, _raw: RawTag | None = None) -> None:
         super().__init__(_raw=_raw)
@@ -152,8 +177,41 @@ class SimpleTag(Tag, ABC, Generic[VT]):
     def _parse_param(param: str) -> VT:
         pass
 
+    def _parse_value(self) -> VT | None:
+        raw = self._raw
+        if raw is None or not raw.params:
+            return None
+        try:
+            return self._parse_param(raw.params[0])
+        except ValueError:
+            return None
+
+    def _load_value(self) -> VT | None:
+        value = self._value
+        if value is _UNSET:
+            value = self._parse_value()
+            object.__setattr__(self, "_value", value)
+        return cast("VT | None", value)
+
+    @property
+    def value(self) -> VT | None:
+        return self._load_value()
+
+    @value.setter
+    def value(self, value: VT | None) -> None:
+        object.__setattr__(self, "_value", value)
+
+    @classmethod
+    def _create_deferred(cls, raw: RawTag) -> Self:
+        tag = super()._create_deferred(raw)
+        object.__setattr__(tag, "_value", _UNSET)
+        return tag
+
     @classmethod
     def from_raw(cls, raw: RawTag, strict: bool = False, parser: TagParser | None = None) -> Self:
+        if not strict and (cls.__init__ is SimpleTag.__init__ or cls._lazy_init):
+            return cls._create_deferred(raw)
+
         if len(raw.params) == 0:
             return cls(None, _raw=raw)
 
