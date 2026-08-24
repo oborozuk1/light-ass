@@ -14,6 +14,8 @@ from .tags import (
     BorderTag,
     BorderXTag,
     BorderYTag,
+    ClipRectTag,
+    ClipShapeTag,
     DrawingBaselineOffsetTag,
     DrawingModeTag,
     FontEncodingTag,
@@ -21,6 +23,8 @@ from .tags import (
     FontSizeAbsoluteTag,
     FontSizeRelativeTag,
     FontSizeTag,
+    InverseClipRectTag,
+    InverseClipShapeTag,
     ItalicTag,
     KaraokeOutlineTag,
     KaraokeSweepTag,
@@ -28,8 +32,11 @@ from .tags import (
     KaraokeTimeTag,
     LegacyAlignmentTag,
     LetterSpacingTag,
+    MoveTag,
+    OriginTag,
     OutlineAlphaTag,
     OutlineColorTag,
+    PositionTag,
     PrimaryAlphaTag,
     PrimaryColorTag,
     RawTag,
@@ -278,6 +285,43 @@ class OverrideBlock:
                     nodes.append(WrapStyleTag(wrap_style))
 
         return OverrideBlock(nodes), style, fontsize_state  # type:ignore[return-value]
+
+    def rescale(self, scale_x: float, scale_y: float) -> bool:
+        modified = False
+        for tag in self.nodes:
+            match tag:
+                case TransformTag():
+                    modified |= tag.modifier.rescale(scale_x, scale_y)
+                case PositionTag() | OriginTag():
+                    tag.x = round(tag.x * scale_x, 3)
+                    tag.y = round(tag.y * scale_y, 3)
+                    modified = True
+                case MoveTag():
+                    tag.x1 = round(tag.x1 * scale_x, 3)
+                    tag.y1 = round(tag.y1 * scale_y, 3)
+                    tag.x2 = round(tag.x2 * scale_x, 3)
+                    tag.y2 = round(tag.y2 * scale_y, 3)
+                    modified = True
+                case ClipRectTag() | InverseClipRectTag():
+                    tag.x1 = round(tag.x1 * scale_x, 1)
+                    tag.y1 = round(tag.y1 * scale_y, 1)
+                    tag.x2 = round(tag.x2 * scale_x, 1)
+                    tag.y2 = round(tag.y2 * scale_y, 1)
+                    modified = True
+                case ClipShapeTag() | InverseClipShapeTag():
+                    tag.shape.scale(scale_x, scale_y)
+                    modified = True
+                case (
+                    FontSizeAbsoluteTag() | BorderTag() | BorderXTag() | ShadowTag() | ShadowXTag()
+                ):
+                    if tag.value is not None:
+                        tag.value = round(tag.value * scale_x, 3)
+                        modified = True
+                case BorderYTag() | ShadowYTag():
+                    if tag.value is not None:
+                        tag.value = round(tag.value * scale_y, 3)
+                        modified = True
+        return modified
 
     def collect_effective_indices(self) -> dict[EffectGroup, list[tuple[Tag, int]]]:
         groups: dict[EffectGroup, list[tuple[Tag, int]]] = {}

@@ -207,7 +207,10 @@ class TestDocumentResample:
         doc = Document.from_string(text)
         doc.resample(1280, 720)
         assert doc.styles["Default"].fontsize > 20
-        assert "pos" in doc.events[0].text
+        assert "\\pos(320,180)" in doc.events[0].text
+        assert "\\fs64" in doc.events[0].text
+        assert "\\bord4" in doc.events[0].text
+        assert "\\shad2" in doc.events[0].text
 
     def test_resample_clip_tags(self):
         text = (
@@ -223,6 +226,41 @@ class TestDocumentResample:
         )
         doc = Document.from_string(text)
         doc.resample(1280, 720)
+        assert "\\clip(0,0,640,360)" in doc.events[0].text
+
+    def test_resample_move_and_transform_tags(self):
+        text = (
+            "[Script Info]\n"
+            "PlayResX: 640\n"
+            "PlayResY: 480\n\n"
+            "[V4+ Styles]\n"
+            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
+            "Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n"
+            "[Events]\n"
+            "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+            "Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\\move(10,20,30,40,0,100)}{\\t(0,100,\\fs32\\bord2)}Text"
+        )
+        doc = Document.from_string(text)
+        doc.resample(1280, 720)
+        assert "\\move(20,30,60,60,0,100)" in doc.events[0].text
+        assert "\\fs64" in doc.events[0].text
+        assert "\\bord4" in doc.events[0].text
+
+    def test_resample_relative_fs_not_scaled(self):
+        text = (
+            "[Script Info]\n"
+            "PlayResX: 640\n"
+            "PlayResY: 480\n\n"
+            "[V4+ Styles]\n"
+            "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n"
+            "Style: Default,Arial,20,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\n\n"
+            "[Events]\n"
+            "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n"
+            "Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\\fs+2}Text"
+        )
+        doc = Document.from_string(text)
+        doc.resample(1280, 720)
+        assert "\\fs+2" in doc.events[0].text
 
 
 class TestDocumentRepr:

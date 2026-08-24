@@ -160,6 +160,16 @@ class ParsedLine:
                 parts.append(deepcopy(part))
         return ParsedLine(parts)
 
+    def rescale(self, scale_x: float, scale_y: float) -> bool:
+        modified = False
+        for part in self.parts:
+            if isinstance(part, DrawingNode):
+                part.shape.scale(scale_x, scale_y)
+                modified = True
+            elif isinstance(part, OverrideBlock):
+                modified |= part.rescale(scale_x, scale_y)
+        return modified
+
     def collect_effective_indices(self) -> dict[EffectGroup, set[tuple[int, int]]]:
         groups: dict[EffectGroup, list[list[tuple[Tag, int]]]] = {}
         for part_idx, part in enumerate(self.parts):

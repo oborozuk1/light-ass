@@ -3,24 +3,8 @@ from collections.abc import Sequence
 from typing import ClassVar, Protocol, Self
 
 from .constants import AssSectionHeader
-from .curly import DEFAULT_TAG_PARSER, DrawingNode, TagParser
-from .curly.tags import (
-    BorderTag,
-    BorderXTag,
-    BorderYTag,
-    ClipRectTag,
-    ClipShapeTag,
-    FontSizeAbsoluteTag,
-    InverseClipRectTag,
-    InverseClipShapeTag,
-    MoveTag,
-    OriginTag,
-    PositionTag,
-    ResetStyleTag,
-    ShadowTag,
-    ShadowXTag,
-    ShadowYTag,
-)
+from .curly import DEFAULT_TAG_PARSER, TagParser
+from .curly.tags import ResetStyleTag
 from .events import Events
 from .script_info import ScriptInfo
 from .styles import Styles
@@ -167,53 +151,7 @@ class Document:
             event.margin_v = int(event.margin_v * scale_y)
 
             parsed = event.parse_tags(self, parser)
-            modified = False
-            for part in parsed.parsed:
-                if isinstance(part, DrawingNode):
-                    modified = True
-                    part.shape.scale(scale_x, scale_y)
-                elif isinstance(part, (PositionTag, OriginTag)):
-                    modified = True
-                    part.x = round(part.x * scale_x, 3)
-                    part.y = round(part.y * scale_y, 3)
-                elif isinstance(part, MoveTag):
-                    modified = True
-                    part.x1 = round(part.x1 * scale_x, 3)
-                    part.y1 = round(part.y1 * scale_y, 3)
-                    part.x2 = round(part.x2 * scale_x, 3)
-                    part.y2 = round(part.y2 * scale_y, 3)
-                elif isinstance(part, (ClipRectTag, InverseClipRectTag)):
-                    modified = True
-                    part.x1 = round(part.x1 * scale_x, 1)
-                    part.y1 = round(part.y1 * scale_y, 1)
-                    part.x2 = round(part.x2 * scale_x, 1)
-                    part.y2 = round(part.y2 * scale_y, 1)
-                elif isinstance(part, (ClipShapeTag, InverseClipShapeTag)):
-                    modified = True
-                    part.shape.scale(scale_x, scale_y)
-                elif isinstance(part, FontSizeAbsoluteTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_x, 3)
-                elif isinstance(part, BorderTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_x, 3)
-                elif isinstance(part, BorderXTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_x, 3)
-                elif isinstance(part, BorderYTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_y, 3)
-                elif isinstance(part, ShadowTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_x, 3)
-                elif isinstance(part, ShadowXTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_x, 3)
-                elif isinstance(part, ShadowYTag) and part.value is not None:
-                    modified = True
-                    part.value = round(part.value * scale_y, 3)
-
-            if modified:
+            if parsed.parsed.rescale(scale_x, scale_y):
                 event.text = parsed.to_ass()
 
     def to_ass(self, section_order: Sequence[str] | None = None) -> str:
