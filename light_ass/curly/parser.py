@@ -22,7 +22,7 @@ from .tags import STANDARD_TAG_SET, DrawingModeTag, RawTag, SimpleTag, Tag
 class TagParser:
     _BLOCK_ESCAPED_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"(?<!\\){(.*?)}")
     _BLOCK_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"{(.*?)}")
-    _TAG_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"\\([^(\\]+)(?:\(([^)]*)\)?)?")
+    _TAG_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"\\(?:[ \t]*)([^(\\]+)(?:\(([^)]*)\)?)?")
 
     _ESCAPE_PATTERN: ClassVar[re.Pattern[str]] = re.compile(r"((?:\\N)+|(?:\\n)+|(?:\\h)+)")
 
