@@ -125,7 +125,7 @@ class Dialog:
         if parser is None:
             parser = DEFAULT_TAG_PARSER
         parsed = parser.parse(self.text, strict, escape_brace, parse_escape_nodes)
-        return ParsedDialog(doc=doc, event=self, parsed=parsed)
+        return ParsedDialog(doc=doc, event=self, parsed=parsed, tag_parser=parser)
 
 
 class Events:

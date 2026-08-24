@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar
 
-from .curly import ParsedLine, Tag
+from .curly import DEFAULT_TAG_PARSER, ParsedLine, Tag, TagParser
 from .curly.tags import MoveTag, PositionTag
 from .events import Dialog
 from .types import AssTime, Point
@@ -36,7 +36,7 @@ class ParsedDialog:
     event: Dialog
     parsed: ParsedLine
 
-    def __init__(self, doc: Document, event: Dialog, parsed: ParsedLine) -> None:
+    def __init__(self, doc: Document, event: Dialog, parsed: ParsedLine, tag_parser: TagParser = None) -> None:
         self.doc = doc
         self.event = event
         self.parsed = parsed
@@ -51,10 +51,15 @@ class ParsedDialog:
         self.margin_v = event.margin_v
         self.effect = event.effect
         self.original_text = event.text
+        self.tag_parser = tag_parser or DEFAULT_TAG_PARSER
 
     @property
     def text(self) -> str:
         return self.parsed.get_text()
+
+    @text.setter
+    def text(self, text: str) -> None:
+        self.parsed = self.tag_parser.parse(text)
 
     @property
     def plain_text(self) -> str:
