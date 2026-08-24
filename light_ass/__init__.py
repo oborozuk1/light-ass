@@ -6,7 +6,7 @@ from .script_info import ScriptInfo
 from .styles import Style, Styles
 from .types import AssAlpha, AssColor, AssShape, AssTime
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 load = Document.load
 from_string = Document.from_string
