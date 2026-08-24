@@ -68,6 +68,10 @@ class ParsedDialog:
     def target_style(self) -> Style:
         return self.doc.styles[self.style]
 
+    @property
+    def text_stripped(self) -> str:
+        return self.parsed.get_plain_text(True)
+
     def get_tags(
         self,
         tag_cls: type[_TagT] | tuple[type[_TagT]] | None = None,
