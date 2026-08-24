@@ -5,37 +5,10 @@ from typing import TYPE_CHECKING, Any, Self
 from ...types.ass_shape import AssShape
 from ...types.point import Point
 from ...utils import Formatter, TypeParser
-from .base import EffectGroup, EffectPolicy, FirstPolicy, ParensTag, RawTag, Tag
+from .base import EffectGroup, FirstPolicy, LastPolicy, ParensTag, RawTag
 
 if TYPE_CHECKING:
     from ..parser import TagParser
-
-
-class ClipPolicy(EffectPolicy):
-    @staticmethod
-    def simplify_in_block(tags: list[tuple[Tag, int]]) -> set[int]:
-        result: list[int | None] = [None, None]
-        for tag, idx in tags:
-            if isinstance(tag, (ClipRectTag, InverseClipRectTag)):
-                if result[0] is None:
-                    result[0] = idx
-            elif isinstance(tag, (ClipShapeTag, InverseClipShapeTag)):
-                if result[1] is None:
-                    result[1] = idx
-        return set(v for v in result if v is not None)
-
-    @staticmethod
-    def simplify_across_blocks(blocks: list[list[tuple[Tag, int]]]) -> set[tuple[int, int]]:
-        result: list[tuple[int, int] | None] = [None, None]
-        for p, block in enumerate(blocks):
-            for tag, idx in block:
-                if isinstance(tag, (ClipRectTag, InverseClipRectTag)):
-                    if result[0] is None:
-                        result[0] = (p, idx)
-                elif isinstance(tag, (ClipShapeTag, InverseClipShapeTag)):
-                    if result[1] is None:
-                        result[1] = (p, idx)
-        return set(v for v in result if v is not None)
 
 
 def _parse_clip_params(
@@ -158,7 +131,6 @@ class ClipTag(ParensTag):
     __slots__ = ()
 
     tag_name = "clip"
-    effect_group = EffectGroup("clip", ClipPolicy)
 
     @classmethod
     def from_raw(
@@ -169,6 +141,7 @@ class ClipTag(ParensTag):
 
 class ClipRectTag(ClipTag):
     __slots__ = ("x1", "y1", "x2", "y2")
+    effect_group = EffectGroup("rect_clip", LastPolicy)
 
     def __init__(
         self,
@@ -199,6 +172,7 @@ class ClipRectTag(ClipTag):
 
 class ClipShapeTag(ClipTag):
     __slots__ = ("shape", "scale")
+    effect_group = EffectGroup("vector_clip", FirstPolicy)
 
     def __init__(
         self,
@@ -222,7 +196,6 @@ class InverseClipTag(ParensTag):
     __slots__ = ()
 
     tag_name = "iclip"
-    effect_group = EffectGroup("clip", ClipPolicy)
 
     @classmethod
     def from_raw(
@@ -233,6 +206,7 @@ class InverseClipTag(ParensTag):
 
 class InverseClipRectTag(InverseClipTag):
     __slots__ = ("x1", "y1", "x2", "y2")
+    effect_group = EffectGroup("rect_clip", LastPolicy)
 
     def __init__(
         self,
@@ -263,6 +237,7 @@ class InverseClipRectTag(InverseClipTag):
 
 class InverseClipShapeTag(InverseClipTag):
     __slots__ = ("shape", "scale")
+    effect_group = EffectGroup("vector_clip", FirstPolicy)
 
     def __init__(
         self,
